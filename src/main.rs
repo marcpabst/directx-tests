@@ -218,7 +218,6 @@ fn get_hardware_adapter(factory: &IDXGIFactory4) -> Result<IDXGIAdapter1> {
 }
 
 mod d3d12_hello_triangle {
-    use std::os::unix::thread;
 
     use super::*;
 
