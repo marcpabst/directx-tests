@@ -816,6 +816,8 @@ mod d3d12_hello_triangle {
 
         // get present statistics
         let mut present_stats = DXGI_FRAME_STATISTICS::default();
+        // sleep thread for 100ns
+        std::thread::sleep(std::time::Duration::from_nanos(100));
         unsafe { swap_chain.GetFrameStatistics(&mut present_stats) };
 
         println!("Present statistics: {:?}", present_stats);
