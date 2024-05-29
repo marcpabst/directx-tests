@@ -436,7 +436,7 @@ mod d3d12_hello_triangle {
                 let command_list = Some(resources.command_list.cast().unwrap());
                 unsafe { resources.command_queue.ExecuteCommandLists(&[command_list]) };
 
-                // Present the frame.
+                // Present the frame.x
                 unsafe { resources.swap_chain.Present(1, 0) }.ok().unwrap();
 
                 wait_for_previous_frame(resources);
