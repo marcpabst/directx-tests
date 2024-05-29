@@ -832,7 +832,7 @@ mod d3d12_hello_triangle {
 
         // get the current scanline usung D3DKMTGetScanLine
         let mut scanline = D3DKMT_GETSCANLINE::default();
-        unsafe { D3DKMTGetScanLine(&mut scanline) };
+        unsafe { D3DKMTGetScanLine(&mut scanline).ok().unwrap() };
 
         println!("Scanline: {:?}", scanline.ScanLine);
 
