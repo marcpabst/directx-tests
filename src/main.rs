@@ -813,6 +813,11 @@ mod d3d12_hello_triangle {
         // print the time since LAST_TIME
         let elapsed = LAST_TIME.lock().unwrap().elapsed();
         *LAST_TIME.lock().unwrap() = std::time::Instant::now();
+
+        // get present statistics
+        let mut present_stats = DXGI_FRAME_STATISTICS::default();
+        unsafe { output.GetFrameStatistics(&mut present_stats) }.unwrap();
+        println!("Present statistics: {:?}", present_stats);
         println!("Time since last frame: {:?}", elapsed);
 
         resources.frame_index = unsafe { resources.swap_chain.GetCurrentBackBufferIndex() };
