@@ -831,10 +831,10 @@ mod d3d12_hello_triangle {
         while count_after == count_before {
             count_after = get_current_flip_count(swap_chain);
         }
-        println!(
-            "Flips before: {}, flips after: {}",
-            count_before, count_after
-        );
+        // println!(
+        //     "Flips before: {}, flips after: {}",
+        //     count_before, count_after
+        // );
         *LAST_FLIP.lock().unwrap() = count_after;
 
         // print the time since LAST_TIME
@@ -862,12 +862,12 @@ mod d3d12_hello_triangle {
         scanline.VidPnSourceId = 0;
         unsafe { D3DKMTGetScanLine(&mut scanline) };
 
-        println!("Scanline: {:?}", scanline);
+        // println!("Scanline: {:?}", scanline);
 
-        println!("Present statistics: {:?}", present_stats);
-        println!("Frequency: {:?}", qpc_frequency);
-        println!("Time since last frame: {:?}", elapsed);
-        println!("Elapsed QPC time: {:?}", elapsed_qpc_time);
+        // println!("Present statistics: {:?}", present_stats);
+        // println!("Frequency: {:?}", qpc_frequency);
+        // println!("Time since last frame: {:?}", elapsed);
+        // println!("Elapsed QPC time: {:?}", elapsed_qpc_time);
 
         resources.frame_index = unsafe { resources.swap_chain.GetCurrentBackBufferIndex() };
     }
