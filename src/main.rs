@@ -842,7 +842,7 @@ mod d3d12_hello_triangle {
         unsafe { QueryPerformanceCounter(&mut later) };
 
         // measure the time from return from WaitForVBlank to the flip to be reported through the frame statistics
-        let report_delay1 = (now - last_vblank) / 10;
+        let report_delay1 = (last_vblank - now) / 10;
         let report_delay2 = (later - now) / 10;
 
         println!(
