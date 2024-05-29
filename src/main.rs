@@ -1,8 +1,8 @@
 use windows::{
-    core::*, Wdk::Graphics::Direct3D::*, Win32::Foundation::*, Win32::Graphics::Direct3D::Fxc::*,
-    Win32::Graphics::Direct3D::*, Win32::Graphics::Direct3D12::*, Win32::Graphics::Dxgi::Common::*,
-    Win32::Graphics::Dxgi::*, Win32::Graphics::Gdi::*, Win32::System::LibraryLoader::*,
-    Win32::System::Performance::*, Win32::System::Threading::*, Win32::UI::WindowsAndMessaging::*,
+    core::*, Win32::Foundation::*, Win32::Graphics::Direct3D::Fxc::*, Win32::Graphics::Direct3D::*,
+    Win32::Graphics::Direct3D12::*, Win32::Graphics::Dxgi::Common::*, Win32::Graphics::Dxgi::*,
+    Win32::System::LibraryLoader::*, Win32::System::Performance::*, Win32::System::Threading::*,
+    Win32::UI::WindowsAndMessaging::*,
 };
 
 use std::mem::transmute;
@@ -850,7 +850,6 @@ mod d3d12_hello_triangle {
         unsafe { QueryPerformanceCounter(&mut later) };
 
         // measure the time from return from WaitForVBlank to the flip to be reported through the frame statistics
-        // in uS
         let report_delay1 = (last_vblank - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
         let report_delay2 = (later - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
 
@@ -858,6 +857,7 @@ mod d3d12_hello_triangle {
             "Report delay between WaitForVBlank and flip timestamped through frame statistics: {} us",
             report_delay1
         );
+
         println!(
             "Report delay between WaitForVBlank and flip polled through frame statistics: {} us",
             report_delay2
@@ -872,6 +872,8 @@ mod d3d12_hello_triangle {
         println!("Current estimated FPS: {}", fps);
 
         let diff = count_after - count_before;
+
+        // check if we missed any flips
         if diff > 1 {
             println!("Missed {} flips", diff - 1);
         }

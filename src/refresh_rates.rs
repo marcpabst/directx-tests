@@ -187,7 +187,6 @@ impl RefreshRateCalculator {
                             self.m_s = self.cut(&self.m_s);
                             self.n_skip_base = self.n_skip_base * 2 + 1;
                         }
-                        let at = self.m_d.len();
                         self.m_d.push(self.l2);
                         self.m_s
                             .push((self.l0 + self.l1 + self.l2 + self.l3 + self.l4) / 5.0);
