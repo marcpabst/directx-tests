@@ -7,6 +7,8 @@ use windows::{
 
 use std::mem::transmute;
 
+mod refresh_rates;
+
 // set up a static mutex containing a instant
 lazy_static::lazy_static! {
     static ref LAST_TIME: std::sync::Mutex<std::time::Instant> = std::sync::Mutex::new(std::time::Instant::now());
@@ -252,6 +254,8 @@ mod d3d12_hello_triangle {
         fence: ID3D12Fence,
         fence_value: u64,
         fence_event: HANDLE,
+
+        frame_rate_calc: refresh_rates::RefreshRateCalculator,
     }
 
     impl DXSample for Sample {
@@ -416,6 +420,7 @@ mod d3d12_hello_triangle {
                 fence,
                 fence_value,
                 fence_event,
+                frame_rate_calc: refresh_rates::RefreshRateCalculator::new(),
             });
 
             Ok(())
@@ -840,6 +845,15 @@ mod d3d12_hello_triangle {
         while count_after == count_before {
             (count_after, last_vblank) = get_current_flip_count(swap_chain);
         }
+
+        // add the timestamp to frame_rate_calc
+        resources
+            .frame_rate_calc
+            .count_cycle(last_vblank as f64 / qpc_frequency as f64 * 1_000_000.0);
+
+        // get current estimated fps
+        let fps = resources.frame_rate_calc.get_current_frequency();
+        println!("Current estimated FPS: {}", fps);
 
         let mut later = i64::default();
         unsafe { QueryPerformanceCounter(&mut later) };
