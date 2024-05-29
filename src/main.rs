@@ -441,8 +441,9 @@ mod d3d12_hello_triangle {
 
                 wait_for_previous_frame(resources);
 
-                // stall htread for 17ms
-                // std::thread::sleep(std::time::Duration::from_millis(17));
+                // stall htread for by a random amount of time between 0 and 10ms
+                let stall_time = rand::random::<u64>() % 10;
+                std::thread::sleep(std::time::Duration::from_millis(stall_time));
             }
         }
     }
@@ -833,9 +834,9 @@ mod d3d12_hello_triangle {
         let mut count_after = get_current_flip_count(swap_chain);
 
         // busy wait until the flip count changes
-        // while count_after == count_before {
-        //     count_after = get_current_flip_count(swap_chain);
-        // }
+        while count_after == count_before {
+            count_after = get_current_flip_count(swap_chain);
+        }
         // println!(
         //     "Flips before: {}, flips after: {}",
         //     count_before, count_after

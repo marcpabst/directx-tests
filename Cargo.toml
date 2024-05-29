@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 array-init = "2.0.0"
 lazy_static = "1.4.0"
+rand = "0.8.5"
 
 [dependencies.windows]
 version="0.56.0"
