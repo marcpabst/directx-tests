@@ -11,6 +11,7 @@ use std::mem::transmute;
 lazy_static::lazy_static! {
     static ref LAST_TIME: std::sync::Mutex<std::time::Instant> = std::sync::Mutex::new(std::time::Instant::now());
     static ref LAST_FRAME: std::sync::Mutex<i64> = std::sync::Mutex::new(0);
+    static ref LAST_FLIP: std::sync::Mutex<u32> = std::sync::Mutex::new(0);
 }
 
 trait DXSample {
@@ -791,33 +792,39 @@ mod d3d12_hello_triangle {
         // D3D12HelloFrameBuffering sample illustrates how to use fences for
         // efficient resource usage and to maximize GPU utilization.
 
-        // Signal and increment the fence value.
-        let fence = resources.fence_value;
+        // // Signal and increment the fence value.
+        // let fence = resources.fence_value;
 
-        unsafe { resources.command_queue.Signal(&resources.fence, fence) }
-            .ok()
-            .unwrap();
+        // unsafe { resources.command_queue.Signal(&resources.fence, fence) }
+        //     .ok()
+        //     .unwrap();
 
-        resources.fence_value += 1;
+        // resources.fence_value += 1;
 
-        // Wait until the previous frame is finished.
-        if unsafe { resources.fence.GetCompletedValue() } < fence {
-            unsafe {
-                resources
-                    .fence
-                    .SetEventOnCompletion(fence, resources.fence_event)
-            }
-            .ok()
-            .unwrap();
+        // // Wait until the previous frame is finished.
+        // if unsafe { resources.fence.GetCompletedValue() } < fence {
+        //     unsafe {
+        //         resources
+        //             .fence
+        //             .SetEventOnCompletion(fence, resources.fence_event)
+        //     }
+        //     .ok()
+        //     .unwrap();
 
-            unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
-        }
+        //     unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
+        // }
 
         // wait for vblank using IDXGIOutput.WaitForVBlank
         let swap_chain = &resources.swap_chain;
         let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
 
         let count_before = get_current_flip_count(swap_chain);
+
+        // check if match the flip count
+        let old_flip = *LAST_FLIP.lock().unwrap();
+        if count_before > old_flip {
+            println!("WARNING: Missed {} flips", count_before - old_flip);
+        }
         unsafe { output.WaitForVBlank().unwrap() };
         let mut count_after = get_current_flip_count(swap_chain);
         // busy wait until the flip count changes
@@ -828,6 +835,8 @@ mod d3d12_hello_triangle {
             "Flips before: {}, flips after: {}",
             count_before, count_after
         );
+        *LAST_FLIP.lock().unwrap() = count_after;
+
         // print the time since LAST_TIME
         let elapsed = LAST_TIME.lock().unwrap().elapsed();
         *LAST_TIME.lock().unwrap() = std::time::Instant::now();
