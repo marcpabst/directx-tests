@@ -839,10 +839,10 @@ mod d3d12_hello_triangle {
             std::thread::sleep(std::time::Duration::from_micros(10));
             count_after = get_current_flip_count(swap_chain);
         }
-        // println!(
-        //     "Flips before: {}, flips after: {}",
-        //     count_before, count_after
-        // );
+        println!(
+            "Flips before: {}, flips after: {}",
+            count_before, count_after
+        );
         *LAST_FLIP.lock().unwrap() = count_after;
 
         // print the time since LAST_TIME
