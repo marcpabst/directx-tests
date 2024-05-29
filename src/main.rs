@@ -80,7 +80,7 @@ where
         right: size.0,
         bottom: size.1,
     };
-    unsafe { AdjustWindowRect(&mut window_rect, WS_OVERLAPPEDWINDOW, false)? };
+    unsafe { AdjustWindowRect(&mut window_rect, WS_POPUP, false)? };
 
     let mut title = sample.title();
 
@@ -100,7 +100,7 @@ where
             CW_USEDEFAULT,
             window_rect.right - window_rect.left,
             window_rect.bottom - window_rect.top,
-            None, // no parent window
+            None, // no parent windowf
             None, // no menus
             instance,
             Some(&mut sample as *mut _ as _),
