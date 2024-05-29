@@ -847,7 +847,7 @@ mod d3d12_hello_triangle {
         }
 
         // add the timestamp to frame_rate_calc
-        let last_vblank_ms = last_vblank as f64 / qpc_frequency as f64;
+        let last_vblank_ms = last_vblank as f64 / qpc_frequency as f64 * 10.0;
         resources.frame_rate_calc.count_cycle(last_vblank_ms);
 
         // get current estimated fps
