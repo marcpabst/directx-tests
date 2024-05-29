@@ -840,6 +840,8 @@ mod d3d12_hello_triangle {
 
         // measure the time from return from WaitForVBlank to the flip to be reported through the frame statistics
         let report_delay = now - last_vblank;
+        // convert from 100ns to us
+        let report_delay = report_delay / 10;
 
         println!("Report delay: {}us", report_delay);
 
