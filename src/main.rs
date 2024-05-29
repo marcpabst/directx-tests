@@ -810,7 +810,7 @@ mod d3d12_hello_triangle {
         // wait for vblank using IDXGIOutput.WaitForVBlank
         let swap_chain = &resources.swap_chain;
         let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
-        unsafe { output.WaitForVBlank() };
+        unsafe { output.WaitForVBlank().unwrap() };
         // print the time since LAST_TIME
         let elapsed = LAST_TIME.lock().unwrap().elapsed();
         *LAST_TIME.lock().unwrap() = std::time::Instant::now();
@@ -832,7 +832,9 @@ mod d3d12_hello_triangle {
 
         // get the current scanline usung D3DKMTGetScanLine
         let mut scanline = D3DKMT_GETSCANLINE::default();
-        unsafe { D3DKMTGetScanLine(&mut scanline).ok().unwrap() };
+        // set D3DDDI_VIDEO_PRESENT_SOURCE_ID
+        scanline.VidPnSourceId = 0;
+        unsafe { D3DKMTGetScanLine(&mut scanline) };
 
         println!("Scanline: {:?}", scanline);
 
