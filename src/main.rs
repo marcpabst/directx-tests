@@ -781,7 +781,7 @@ mod d3d12_hello_triangle {
 
     fn get_current_flip_count(swap_chain: &IDXGISwapChain3) -> u32 {
         let mut present_stats: DXGI_FRAME_STATISTICS = DXGI_FRAME_STATISTICS::default();
-        unsafe { swap_chain.GetFrameStatistics(&mut present_stats).ok() }.unwrap();
+        unsafe { swap_chain.GetFrameStatistics(&mut present_stats);
         present_stats.PresentCount
     }
 
