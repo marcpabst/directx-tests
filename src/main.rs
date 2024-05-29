@@ -827,23 +827,32 @@ mod d3d12_hello_triangle {
 
         unsafe { output.WaitForVBlank().unwrap() };
 
-        let (mut count_after, mut last_vblank) = get_current_flip_count(swap_chain);
-
         // get current qpc timestamp
         let mut now = i64::default();
         unsafe { QueryPerformanceCounter(&mut now) };
+
+        let (mut count_after, mut last_vblank) = get_current_flip_count(swap_chain);
 
         // busy wait until the flip count changes
         while count_after == count_before {
             (count_after, last_vblank) = get_current_flip_count(swap_chain);
         }
 
-        // measure the time from return from WaitForVBlank to the flip to be reported through the frame statistics
-        let report_delay = now - last_vblank;
-        // convert from 100ns to us
-        let report_delay = report_delay / 10;
+        let mut later = i64::default();
+        unsafe { QueryPerformanceCounter(&mut later) };
 
-        println!("Report delay: {}us", report_delay);
+        // measure the time from return from WaitForVBlank to the flip to be reported through the frame statistics
+        let report_delay1 = (now - last_vblank) / 10;
+        let report_delay2 = (now - later) / 10;
+
+        println!(
+            "Report delay (using reported timestamp): {} us",
+            report_delay1
+        );
+        println!(
+            "Report delay (manual timestamp when flip is reported): {} us",
+            report_delay2
+        );
 
         let diff = count_after - count_before;
         if diff > 1 {
