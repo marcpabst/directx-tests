@@ -7,6 +7,11 @@ use windows::{
 
 use std::mem::transmute;
 
+// set up a static mutex containing a instant
+lazy_static::lazy_static! {
+    static ref LAST_TIME: std::sync::Mutex<std::time::Instant> = std::sync::Mutex::new(std::time::Instant::now());
+}
+
 trait DXSample {
     fn new(command_line: &SampleCommandLine) -> Result<Self>
     where
@@ -789,6 +794,11 @@ mod d3d12_hello_triangle {
             let swap_chain = &resources.swap_chain;
             let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
             unsafe { output.WaitForVBlank() };
+            // print the time since LAST_TIME
+            let elapsed = LAST_TIME.lock().unwrap().elapsed();
+            println!("Time since last frame: {:?}", elapsed);
+            // reset LAST_TIME
+            *LAST_TIME.lock().unwrap() = std::time::Instant::now();
         }
 
         resources.frame_index = unsafe { resources.swap_chain.GetCurrentBackBufferIndex() };
