@@ -793,18 +793,18 @@ mod d3d12_hello_triangle {
 
         resources.fence_value += 1;
 
-        // // Wait until the previous frame is finished.
-        // if unsafe { resources.fence.GetCompletedValue() } < fence {
-        //     unsafe {
-        //         resources
-        //             .fence
-        //             .SetEventOnCompletion(fence, resources.fence_event)
-        //     }
-        //     .ok()
-        //     .unwrap();
+        // Wait until the previous frame is finished.
+        if unsafe { resources.fence.GetCompletedValue() } < fence {
+            unsafe {
+                resources
+                    .fence
+                    .SetEventOnCompletion(fence, resources.fence_event)
+            }
+            .ok()
+            .unwrap();
 
-        //     unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
-        // }
+            unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
+        }
 
         // wait for vblank using IDXGIOutput.WaitForVBlank
         let swap_chain = &resources.swap_chain;
