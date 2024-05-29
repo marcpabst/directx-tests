@@ -820,6 +820,7 @@ mod d3d12_hello_triangle {
         let count_before = get_current_flip_count(swap_chain);
         unsafe { output.WaitForVBlank().unwrap() };
         let mut count_after = get_current_flip_count(swap_chain);
+        // busy wait until the flip count changes
         while count_after == count_before {
             count_after = get_current_flip_count(swap_chain);
         }
