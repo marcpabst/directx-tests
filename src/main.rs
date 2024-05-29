@@ -288,6 +288,10 @@ mod d3d12_hello_triangle {
 
             // exclusive fullscreen
             let pfullscreendesc = DXGI_SWAP_CHAIN_FULLSCREEN_DESC {
+                RefreshRate: DXGI_RATIONAL {
+                    Numerator: 60,
+                    Denominator: 1,
+                },
                 Windowed: false.into(),
                 ..Default::default()
             };
