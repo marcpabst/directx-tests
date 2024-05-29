@@ -448,8 +448,8 @@ mod d3d12_hello_triangle {
                 wait_for_previous_frame(resources);
 
                 // stall htread for by a random amount of time between 0 and 10ms
-                // let stall_time = rand::random::<u64>() % 10;
-                // std::thread::sleep(std::time::Duration::from_millis(stall_time));
+                let stall_time = rand::random::<u64>() % 10;
+                std::thread::sleep(std::time::Duration::from_millis(stall_time));
             }
         }
     }
