@@ -816,7 +816,8 @@ mod d3d12_hello_triangle {
 
         // get present statistics
         let mut present_stats = DXGI_FRAME_STATISTICS::default();
-        unsafe { output.GetFrameStatistics(&mut present_stats) }.unwrap();
+        unsafe { swap_chain.GetFrameStatistics(&mut present_stats) }.unwrap();
+
         println!("Present statistics: {:?}", present_stats);
         println!("Time since last frame: {:?}", elapsed);
 
