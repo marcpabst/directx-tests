@@ -843,14 +843,14 @@ mod d3d12_hello_triangle {
 
         // measure the time from return from WaitForVBlank to the flip to be reported through the frame statistics
         let report_delay1 = (now - last_vblank) / 10;
-        let report_delay2 = (now - later) / 10;
+        let report_delay2 = (later - now) / 10;
 
         println!(
-            "Report delay (using reported timestamp): {} us",
+            "Report delay between WaitForVBlank and flip timestamped through frame statistics: {} us",
             report_delay1
         );
         println!(
-            "Report delay (manual timestamp when flip is reported): {} us",
+            "Report delay between WaitForVBlank and flip polled through frame statistics: {} us",
             report_delay2
         );
 
