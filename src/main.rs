@@ -108,6 +108,7 @@ where
     };
 
     sample.bind_to_window(&hwnd)?;
+
     unsafe { _ = ShowWindow(hwnd, SW_SHOW) };
 
     loop {
@@ -295,6 +296,11 @@ mod d3d12_hello_triangle {
                 )?
             }
             .cast()?;
+
+            // Set fullscreen state
+            unsafe {
+                swap_chain.SetFullscreenState(true, None)?;
+            }
 
             // This sample does not support fullscreen transitions
             unsafe {
