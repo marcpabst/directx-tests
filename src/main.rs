@@ -825,7 +825,7 @@ mod d3d12_hello_triangle {
         let old_flip = *LAST_FLIP.lock().unwrap();
         let count_before = get_current_flip_count(swap_chain);
         if count_before > old_flip {
-            println!("WARNING: Missed {} flips", count_before - old_flip);
+            println!("WARNING: Missed {} flips1", count_before - old_flip);
         }
 
         unsafe { output.WaitForVBlank().unwrap() };
