@@ -834,7 +834,7 @@ mod d3d12_hello_triangle {
         let mut scanline = D3DKMT_GETSCANLINE::default();
         unsafe { D3DKMTGetScanLine(&mut scanline).ok().unwrap() };
 
-        println!("Scanline: {:?}", scanline.ScanLine);
+        println!("Scanline: {:?}", scanline);
 
         println!("Present statistics: {:?}", present_stats);
         println!("Frequency: {:?}", qpc_frequency);
