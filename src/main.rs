@@ -827,7 +827,7 @@ mod d3d12_hello_triangle {
         let mut qpc_frequency = i64::default();
         unsafe { QueryPerformanceFrequency(&mut qpc_frequency) };
 
-        let qpc_time = sync_qpc_time * 1000 / qpc_frequency;
+        let qpc_time = sync_qpc_time / qpc_frequency;
 
         let elapsed_qpc_time = qpc_time - *LAST_FRAME.lock().unwrap();
         *LAST_FRAME.lock().unwrap() = sync_qpc_time;
