@@ -779,6 +779,12 @@ mod d3d12_hello_triangle {
         color: [f32; 4],
     }
 
+    fn get_current_flip_count(swap_chain: &IDXGISwapChain3) -> u32 {
+        let mut present_stats: DXGI_FRAME_STATISTICS = DXGI_FRAME_STATISTICS::default();
+        unsafe { swap_chain.GetFrameStatistics(&mut present_stats).ok() }.unwrap();
+        present_stats.PresentCount
+    }
+
     fn wait_for_previous_frame(resources: &mut Resources) {
         // WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST
         // PRACTICE. This is code implemented as such for simplicity. The
@@ -810,7 +816,10 @@ mod d3d12_hello_triangle {
         // wait for vblank using IDXGIOutput.WaitForVBlank
         let swap_chain = &resources.swap_chain;
         let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
+
+        println!("Flips before: {:?}", get_current_flip_count(swap_chain));
         unsafe { output.WaitForVBlank().unwrap() };
+        println!("Flips after: {:?}", get_current_flip_count(swap_chain));
         // print the time since LAST_TIME
         let elapsed = LAST_TIME.lock().unwrap().elapsed();
         *LAST_TIME.lock().unwrap() = std::time::Instant::now();
