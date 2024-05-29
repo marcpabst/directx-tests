@@ -826,12 +826,14 @@ mod d3d12_hello_triangle {
 
         let mut qpc_frequency = i64::default();
         unsafe { QueryPerformanceFrequency(&mut qpc_frequency) };
+
         let qpc_time = sync_qpc_time * 1000 / qpc_frequency;
 
         let elapsed_qpc_time = qpc_time - *LAST_FRAME.lock().unwrap();
         *LAST_FRAME.lock().unwrap() = sync_qpc_time;
 
         println!("Present statistics: {:?}", present_stats);
+        println!("Frequency: {:?}", qpc_frequency);
         println!("Time since last frame: {:?}", elapsed);
         println!("Elapsed QPC time: {:?}", elapsed_qpc_time);
 
