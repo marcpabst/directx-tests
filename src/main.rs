@@ -846,14 +846,6 @@ mod d3d12_hello_triangle {
             (count_after, last_vblank) = get_current_flip_count(swap_chain);
         }
 
-        // add the timestamp to frame_rate_calc
-        let last_vblank_ms = last_vblank as f64 / qpc_frequency as f64 * 1000.0;
-        resources.frame_rate_calc.count_cycle(last_vblank_ms);
-
-        // get current estimated fps
-        let fps = resources.frame_rate_calc.get_current_frequency();
-        println!("Current estimated FPS: {}", fps);
-
         let mut later = i64::default();
         unsafe { QueryPerformanceCounter(&mut later) };
 
@@ -870,6 +862,14 @@ mod d3d12_hello_triangle {
             "Report delay between WaitForVBlank and flip polled through frame statistics: {} us",
             report_delay2
         );
+
+        // add the timestamp to frame_rate_calc
+        let last_vblank_ms = last_vblank as f64 / qpc_frequency as f64 * 1000.0;
+        resources.frame_rate_calc.count_cycle(last_vblank_ms);
+
+        // get current estimated fps
+        let fps = resources.frame_rate_calc.get_current_frequency();
+        println!("Current estimated FPS: {}", fps);
 
         let diff = count_after - count_before;
         if diff > 1 {
