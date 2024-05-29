@@ -812,9 +812,8 @@ mod d3d12_hello_triangle {
         unsafe { output.WaitForVBlank() };
         // print the time since LAST_TIME
         let elapsed = LAST_TIME.lock().unwrap().elapsed();
-        println!("Time since last frame: {:?}", elapsed);
-        // reset LAST_TIME
         *LAST_TIME.lock().unwrap() = std::time::Instant::now();
+        println!("Time since last frame: {:?}", elapsed);
 
         resources.frame_index = unsafe { resources.swap_chain.GetCurrentBackBufferIndex() };
     }
