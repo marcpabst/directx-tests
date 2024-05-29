@@ -440,6 +440,9 @@ mod d3d12_hello_triangle {
                 unsafe { resources.swap_chain.Present(1, 0) }.ok().unwrap();
 
                 wait_for_previous_frame(resources);
+
+                // stall htread for 17ms
+                std::thread::sleep(std::time::Duration::from_millis(17));
             }
         }
     }
