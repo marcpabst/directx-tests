@@ -96,10 +96,10 @@ where
             s!("RustWindowClass"),
             PCSTR(title.as_ptr()),
             WS_POPUP,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            window_rect.right - window_rect.left,
-            window_rect.bottom - window_rect.top,
+            0,
+            0,
+            GetSystemMetrics(SM_CXSCREEN),
+            GetSystemMetrics(SM_CYSCREEN),
             None, // no parent windowf
             None, // no menus
             instance,
