@@ -825,6 +825,9 @@ mod d3d12_hello_triangle {
 
         let count_before = *LAST_FLIP.lock().unwrap();
 
+        let mut qpc_frequency = i64::default();
+        unsafe { QueryPerformanceFrequency(&mut qpc_frequency) };
+
         unsafe { output.WaitForVBlank().unwrap() };
 
         // get current qpc timestamp
@@ -842,8 +845,9 @@ mod d3d12_hello_triangle {
         unsafe { QueryPerformanceCounter(&mut later) };
 
         // measure the time from return from WaitForVBlank to the flip to be reported through the frame statistics
-        let report_delay1 = (last_vblank - now) / 10;
-        let report_delay2 = (later - now) / 10;
+        // in uS
+        let report_delay1 = (last_vblank - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
+        let report_delay2 = (later - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
 
         println!(
             "Report delay between WaitForVBlank and flip timestamped through frame statistics: {} us",
