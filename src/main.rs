@@ -823,12 +823,7 @@ mod d3d12_hello_triangle {
         let swap_chain = &resources.swap_chain;
         let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
 
-        // check if match the flip count
-        let old_flip = *LAST_FLIP.lock().unwrap();
-        let count_before = get_current_flip_count(swap_chain);
-        if count_before > old_flip {
-            println!("WARNING: Missed {} flips1", count_before - old_flip);
-        }
+        let count_before = *LAST_FLIP.lock().unwrap();
 
         unsafe { output.WaitForVBlank().unwrap() };
 
@@ -839,11 +834,13 @@ mod d3d12_hello_triangle {
             std::thread::sleep(std::time::Duration::from_micros(10));
             count_after = get_current_flip_count(swap_chain);
         }
-        println!(
-            "Flips before: {}, flips after: {}",
-            count_before, count_after
-        );
-        *LAST_FLIP.lock().unwrap() = count_after;
+
+        let diff = count_after - count_before;
+        if diff > 1 {
+            println!("Missed {} flips", diff - 1);
+        }
+
+        *LAST_FLIP.lock().unwrap() = count_before;
 
         // print the time since LAST_TIME
         let elapsed = LAST_TIME.lock().unwrap().elapsed();
