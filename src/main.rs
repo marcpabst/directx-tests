@@ -794,7 +794,7 @@ mod d3d12_hello_triangle {
             .ok()
             .unwrap();
 
-            unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
+            //unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
 
             // wait for vblank using IDXGIOutput.WaitForVBlank
             let swap_chain = &resources.swap_chain;
