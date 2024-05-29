@@ -1,7 +1,7 @@
 use windows::{
     core::*, Win32::Foundation::*, Win32::Graphics::Direct3D::Fxc::*, Win32::Graphics::Direct3D::*,
     Win32::Graphics::Direct3D12::*, Win32::Graphics::Dxgi::Common::*, Win32::Graphics::Dxgi::*,
-    Win32::System::LibraryLoader::*, Win32::System::Threading::*,
+    Win32::System::LibraryLoader::*, Win32::System::Performance::*, Win32::System::Threading::*,
     Win32::UI::WindowsAndMessaging::*,
 };
 
@@ -822,7 +822,13 @@ mod d3d12_hello_triangle {
         unsafe { swap_chain.GetFrameStatistics(&mut present_stats) };
 
         let sync_qpc_time = present_stats.SyncQPCTime;
-        let elapsed_qpc_time = sync_qpc_time - *LAST_FRAME.lock().unwrap();
+        // convert qpc time to milliseconds using QueryPerformanceFrequency
+
+        let mut qpc_frequency = i64::default();
+        unsafe { QueryPerformanceFrequency(&mut qpc_frequency) };
+        let qpc_time = sync_qpc_time * 1000 / qpc_frequency;
+
+        let elapsed_qpc_time = qpc_time - *LAST_FRAME.lock().unwrap();
         *LAST_FRAME.lock().unwrap() = sync_qpc_time;
 
         println!("Present statistics: {:?}", present_stats);
