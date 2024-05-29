@@ -95,7 +95,7 @@ where
             WINDOW_EX_STYLE::default(),
             s!("RustWindowClass"),
             PCSTR(title.as_ptr()),
-            WS_OVERLAPPEDWINDOW,
+            WS_POPUP,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
             window_rect.right - window_rect.left,
