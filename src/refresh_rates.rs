@@ -1,3 +1,4 @@
+// THIS IS A RUST PORT OF https://github.com/blurbusters/RefreshRateCalculator
 // LICENSE - Apache-2.0
 //
 // Copyright 2014-2023 by Jerry Jongerius of DuckWare (https://www.duckware.com) - original code and algorithm
@@ -14,8 +15,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-use std::f64::consts::PI;
 
 pub struct RefreshRateCalculator {
     validatems: f64,
