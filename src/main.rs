@@ -821,23 +821,24 @@ mod d3d12_hello_triangle {
         let swap_chain = &resources.swap_chain;
         let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
 
-        let count_before = get_current_flip_count(swap_chain);
-
         // check if match the flip count
         let old_flip = *LAST_FLIP.lock().unwrap();
+        let count_before = get_current_flip_count(swap_chain);
         if count_before > old_flip {
             println!("WARNING: Missed {} flips", count_before - old_flip);
         }
+
         unsafe { output.WaitForVBlank().unwrap() };
+
         let mut count_after = get_current_flip_count(swap_chain);
         // busy wait until the flip count changes
         while count_after == count_before {
             count_after = get_current_flip_count(swap_chain);
         }
-        // println!(
-        //     "Flips before: {}, flips after: {}",
-        //     count_before, count_after
-        // );
+        println!(
+            "Flips before: {}, flips after: {}",
+            count_before, count_after
+        );
         *LAST_FLIP.lock().unwrap() = count_after;
 
         // print the time since LAST_TIME
