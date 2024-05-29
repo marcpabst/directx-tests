@@ -1,8 +1,8 @@
 use windows::{
-    core::*, Win32::Foundation::*, Win32::Graphics::Direct3D::Fxc::*, Win32::Graphics::Direct3D::*,
-    Win32::Graphics::Direct3D12::*, Win32::Graphics::Dxgi::Common::*, Win32::Graphics::Dxgi::*,
-    Win32::System::LibraryLoader::*, Win32::System::Performance::*, Win32::System::Threading::*,
-    Win32::UI::WindowsAndMessaging::*,
+    core::*, Wdk::Graphics::Direct3D::*, Win32::Foundation::*, Win32::Graphics::Direct3D::Fxc::*,
+    Win32::Graphics::Direct3D::*, Win32::Graphics::Direct3D12::*, Win32::Graphics::Dxgi::Common::*,
+    Win32::Graphics::Dxgi::*, Win32::Graphics::Gdi::*, Win32::System::LibraryLoader::*,
+    Win32::System::Performance::*, Win32::System::Threading::*, Win32::UI::WindowsAndMessaging::*,
 };
 
 use std::mem::transmute;
@@ -829,6 +829,12 @@ mod d3d12_hello_triangle {
 
         let elapsed_qpc_time = qpc_time - *LAST_FRAME.lock().unwrap();
         *LAST_FRAME.lock().unwrap() = qpc_time;
+
+        // get the current scanline usung D3DKMTGetScanLine
+        let mut scanline = D3DKMT_GETSCANLINE::default();
+        unsafe { D3DKMTGetScanLine(&mut scanline) };
+
+        println!("Scanline: {:?}", scanline.ScanLine);
 
         println!("Present statistics: {:?}", present_stats);
         println!("Frequency: {:?}", qpc_frequency);
