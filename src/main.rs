@@ -10,6 +10,7 @@ use std::mem::transmute;
 // set up a static mutex containing a instant
 lazy_static::lazy_static! {
     static ref LAST_TIME: std::sync::Mutex<std::time::Instant> = std::sync::Mutex::new(std::time::Instant::now());
+    static ref LAST_FRAME: std::sync::Mutex<i64> = std::sync::Mutex::new(0);
 }
 
 trait DXSample {
@@ -820,8 +821,13 @@ mod d3d12_hello_triangle {
         std::thread::sleep(std::time::Duration::from_nanos(100));
         unsafe { swap_chain.GetFrameStatistics(&mut present_stats) };
 
+        let sync_qpc_time = present_stats.SyncQPCTime;
+        let elapsed_qpc_time = sync_qpc_time - *LAST_FRAME.lock().unwrap();
+        *LAST_FRAME.lock().unwrap() = sync_qpc_time;
+
         println!("Present statistics: {:?}", present_stats);
         println!("Time since last frame: {:?}", elapsed);
+        println!("Elapsed QPC time: {:?}", elapsed_qpc_time);
 
         resources.frame_index = unsafe { resources.swap_chain.GetCurrentBackBufferIndex() };
     }
