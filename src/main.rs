@@ -218,6 +218,8 @@ fn get_hardware_adapter(factory: &IDXGIFactory4) -> Result<IDXGIAdapter1> {
 }
 
 mod d3d12_hello_triangle {
+    use std::os::unix::thread;
+
     use super::*;
 
     const FRAME_COUNT: u32 = 2;
@@ -443,7 +445,7 @@ mod d3d12_hello_triangle {
 
                 // stall htread for by a random amount of time between 0 and 10ms
                 let stall_time = rand::random::<u64>() % 20;
-                std::thread::sleep(std::time::Duration::from_millis(stall_time));
+                std::thread::sleep(std::time::Duration::from_millis(17));
             }
         }
     }
@@ -835,6 +837,7 @@ mod d3d12_hello_triangle {
 
         // busy wait until the flip count changes
         while count_after == count_before {
+            std::thread::sleep(std::time::Duration::from_micros(10));
             count_after = get_current_flip_count(swap_chain);
         }
         // println!(
