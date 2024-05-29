@@ -840,7 +840,7 @@ mod d3d12_hello_triangle {
             println!("Missed {} flips", diff - 1);
         }
 
-        *LAST_FLIP.lock().unwrap() = count_before;
+        *LAST_FLIP.lock().unwrap() = count_after;
 
         // print the time since LAST_TIME
         let elapsed = LAST_TIME.lock().unwrap().elapsed();
