@@ -442,7 +442,7 @@ mod d3d12_hello_triangle {
                 wait_for_previous_frame(resources);
 
                 // stall htread for 17ms
-                std::thread::sleep(std::time::Duration::from_millis(17));
+                // std::thread::sleep(std::time::Duration::from_millis(17));
             }
         }
     }
@@ -831,6 +831,7 @@ mod d3d12_hello_triangle {
         unsafe { output.WaitForVBlank().unwrap() };
 
         let mut count_after = get_current_flip_count(swap_chain);
+
         // busy wait until the flip count changes
         // while count_after == count_before {
         //     count_after = get_current_flip_count(swap_chain);
