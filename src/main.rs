@@ -286,12 +286,17 @@ mod d3d12_hello_triangle {
                 ..Default::default()
             };
 
+            // exclusive fullscreen
+            let pfullscreendesc = DXGI_SWAP_CHAIN_FULLSCREEN_DESC {
+                Windowed: false.into(),
+                ..Default::default()
+            };
             let swap_chain: IDXGISwapChain3 = unsafe {
                 self.dxgi_factory.CreateSwapChainForHwnd(
                     &command_queue,
                     *hwnd,
                     &swap_chain_desc,
-                    None,
+                    Some(&pfullscreendesc),
                     None,
                 )?
             }
@@ -794,7 +799,7 @@ mod d3d12_hello_triangle {
             .ok()
             .unwrap();
 
-            //unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
+            unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
 
             // wait for vblank using IDXGIOutput.WaitForVBlank
             let swap_chain = &resources.swap_chain;
