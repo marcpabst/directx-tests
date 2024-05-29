@@ -784,7 +784,11 @@ mod d3d12_hello_triangle {
             .unwrap();
 
             unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
-        }
+
+            // wait for vblank using IDXGIOutput.WaitForVBlank
+            let swap_chain = &resources.swap_chain;
+            let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
+            unsafe { output.WaitForVBlank() };  
 
         resources.frame_index = unsafe { resources.swap_chain.GetCurrentBackBufferIndex() };
     }
