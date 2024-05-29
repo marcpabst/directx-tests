@@ -821,16 +821,14 @@ mod d3d12_hello_triangle {
         std::thread::sleep(std::time::Duration::from_nanos(100));
         unsafe { swap_chain.GetFrameStatistics(&mut present_stats) };
 
-        let sync_qpc_time = present_stats.SyncQPCTime;
-        // convert qpc time to milliseconds using QueryPerformanceFrequency
-
         let mut qpc_frequency = i64::default();
         unsafe { QueryPerformanceFrequency(&mut qpc_frequency) };
 
+        let sync_qpc_time = present_stats.SyncQPCTime;
         let qpc_time = sync_qpc_time / qpc_frequency;
 
         let elapsed_qpc_time = qpc_time - *LAST_FRAME.lock().unwrap();
-        *LAST_FRAME.lock().unwrap() = sync_qpc_time;
+        *LAST_FRAME.lock().unwrap() = qpc_time;
 
         println!("Present statistics: {:?}", present_stats);
         println!("Frequency: {:?}", qpc_frequency);
