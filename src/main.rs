@@ -1089,25 +1089,22 @@ fn main() -> Result<()> {
     // create a thread to poll the scanline
     std::thread::spawn(move || {
         let hndl = get_vblank_handle().unwrap();
-        println!("Got handle");
 
         let mut scanline: D3DKMT_GETSCANLINE = Default::default();
 
         scanline.hAdapter = hndl.hAdapter;
         scanline.VidPnSourceId = hndl.VidPnSourceId;
 
-        println!("Starting scanline polling thread");
-
         let was_in_vblank = false;
 
         let start = std::time::Instant::now();
-        println!("Starting scanline polling thread");
-        let mut vblank_time_vec = vec![];
 
-        println!("Starting scanline polling thread");
+        let mut vblank_time_vec = vec![];
 
         loop {
             unsafe { D3DKMTGetScanLine(&mut scanline) };
+
+            println!("Scanline: {}", scanline.ScanLine);
 
             if scanline.InVerticalBlank.as_bool() && !was_in_vblank {
                 //tx.send(VBlankEvent::VBlankBegin).unwrap();
@@ -1119,7 +1116,6 @@ fn main() -> Result<()> {
                 if vblank_time_vec.len() > 1000 {
                     vblank_time_vec.remove(0);
                 }
-
                 // print stats
                 report_stats(&vblank_time_vec, "VBlank");
             }
