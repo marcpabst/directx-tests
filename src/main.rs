@@ -1066,9 +1066,9 @@ mod d3d12_hello_triangle {
             resources.frame_times_wait_for_vblank.remove(0);
         }
 
-        // calculate the variance of the frame times
-        report_stats(&resources.frame_times_interupt, "FrameStatistics");
-        report_stats(&resources.frame_times_wait_for_vblank, "WaitForVBlank");
+        // // calculate the variance of the frame times
+        // report_stats(&resources.frame_times_interupt, "FrameStatistics");
+        // report_stats(&resources.frame_times_wait_for_vblank, "WaitForVBlank");
 
         resources.frame_index = unsafe { resources.swap_chain.GetCurrentBackBufferIndex() };
 
@@ -1078,7 +1078,47 @@ mod d3d12_hello_triangle {
     }
 }
 
+enum VBlankEvent {
+    VBlankBegin,
+    VBlankEnd,
+}
+
 fn main() -> Result<()> {
+    // create a channel to communicate with the scanline polling thread
+    // let (tx, rx) = std::sync::mpsc::channel();
+
+    // create a thread to poll the scanline
+    std::thread::spawn(move || {
+        let hndl = get_vblank_handle().unwrap();
+        let mut scanline: D3DKMT_GETSCANLINE = Default::default();
+        scanline.hAdapter = hndl.hAdapter;
+        scanline.VidPnSourceId = hndl.VidPnSourceId;
+
+        let was_in_vblank = false;
+
+        let start = std::time::Instant::now();
+        let mut vblank_time_vec = vec![];
+
+        loop {
+            unsafe { D3DKMTGetScanLine(&mut scanline) };
+
+            if scanline.InVerticalBlank.as_bool() && !was_in_vblank {
+                //tx.send(VBlankEvent::VBlankBegin).unwrap();
+            } else if !scanline.InVerticalBlank.as_bool() && was_in_vblank {
+                //tx.send(VBlankEvent::VBlankEnd).unwrap();
+                let t = start.elapsed().as_secs_f64();
+                vblank_time_vec.push(t);
+
+                if vblank_time_vec.len() > 1000 {
+                    vblank_time_vec.remove(0);
+                }
+
+                // print stats
+                report_stats(&vblank_time_vec, "VBlank");
+            }
+        }
+    });
+
     run_sample::<d3d12_hello_triangle::Sample>()?;
     Ok(())
 }
