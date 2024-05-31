@@ -965,7 +965,7 @@ mod d3d12_hello_triangle {
         scanline.hAdapter = resources.wait_for_vblank_event.hAdapter;
         scanline.VidPnSourceId = resources.wait_for_vblank_event.VidPnSourceId;
 
-        unsafe { time!({ D3DKMTGetScanLine(&mut scanline) }) };
+        unsafe { D3DKMTGetScanLine(&mut scanline) };
 
         let swap_chain = &resources.swap_chain;
         let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
@@ -1117,8 +1117,9 @@ fn main() -> Result<()> {
                 report_stats(&vblank_time_vec, "VBlank");
             }
         }
-    });
-
+    })
+    .join()
+    .unwrap();
     run_sample::<d3d12_hello_triangle::Sample>()?;
     Ok(())
 }
