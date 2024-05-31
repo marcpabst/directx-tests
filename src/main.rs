@@ -1087,6 +1087,7 @@ fn main() -> Result<()> {
 
     // create a thread to poll the scanline
     std::thread::spawn(move || {
+        println!("Hello from scanline polling thread");
         let hndl = get_vblank_handle().unwrap();
         let mut scanline: D3DKMT_GETSCANLINE = Default::default();
         scanline.hAdapter = hndl.hAdapter;
@@ -1120,6 +1121,7 @@ fn main() -> Result<()> {
     })
     .join()
     .unwrap();
+
     run_sample::<d3d12_hello_triangle::Sample>()?;
     Ok(())
 }
