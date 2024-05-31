@@ -1121,10 +1121,7 @@ fn main() -> Result<()> {
             }
             was_in_vblank = scanline.InVerticalBlank.as_bool();
         }
-    })
-    .join()
-    .unwrap();
-
+    });
     run_sample::<d3d12_hello_triangle::Sample>()?;
     Ok(())
 }
