@@ -1130,6 +1130,9 @@ fn main() -> Result<()> {
                 calc.count_cycle(t);
                 let fps = calc.get_current_frequency();
                 println!("Current estimated FPS: {}", fps);
+
+                // we can sleep here to avoid busy waiting
+                std::thread::sleep(std::time::Duration::from_millis(10));
             }
 
             was_in_vblank = is_in_vblank;
