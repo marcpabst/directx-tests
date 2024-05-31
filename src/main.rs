@@ -428,7 +428,7 @@ mod d3d12_hello_triangle {
             // exclusive fullscreen
             let pfullscreendesc = DXGI_SWAP_CHAIN_FULLSCREEN_DESC {
                 RefreshRate: DXGI_RATIONAL {
-                    Numerator: 60,
+                    Numerator: 120,
                     Denominator: 1,
                 },
                 Windowed: false.into(),
@@ -1109,15 +1109,13 @@ fn main() -> Result<()> {
 
             let is_in_vblank = scanline.InVerticalBlank.as_bool();
 
-            if is_in_vblank && !was_in_vblank {
-                // We just entered the vblank
-            } else if !is_in_vblank && was_in_vblank {
+             if !is_in_vblank && was_in_vblank {
                 // We just left the vblank
 
                 let t = start.elapsed().as_secs_f64() * 1000.0;
                 vblank_time_vec.push(t);
 
-                if vblank_time_vec.len() > 1000 {
+                if vblank_time_vec.len() > 50 {
                     vblank_time_vec.remove(0);
                 }
 
@@ -1126,13 +1124,15 @@ fn main() -> Result<()> {
                 println!("Scanline: {}", scanline.ScanLine);
                 report_stats(&diffs, "VBlank");
 
-                // fps estimation
-                calc.count_cycle(t);
-                let fps = calc.get_current_frequency();
-                println!("Current estimated FPS: {}", fps);
+                // // fps estimation
+                // calc.count_cycle(t);
+                // let fps = calc.get_current_frequency();
+                // println!("Current estimated FPS: {}", fps);
 
                 // we can sleep here to avoid busy waiting
-                std::thread::sleep(std::time::Duration::from_millis(1));
+                //std::thread::sleep(std::time::Duration::from_millis(1));
+
+                println!("VBlank end");
             }
 
             was_in_vblank = is_in_vblank;
