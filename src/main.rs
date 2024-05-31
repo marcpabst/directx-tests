@@ -1126,8 +1126,9 @@ fn main() -> Result<()> {
                 }
 
                 // print stats
-                let diffs = vblank_time_vec.windows(2).map(|w| w[1] - w[0]).collect();
-                println!("Loop took: {} iterations", i);
+                let diffs: Vec<f64> = vblank_time_vec.windows(2).map(|w| w[1] - w[0]).collect();
+                let last_diff = diffs.last().unwrap();
+                println!("Frame time: {} ms", last_diff);
                 report_stats(&diffs, "VBlank");
 
                 // // fps estimation
