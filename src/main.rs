@@ -1121,6 +1121,7 @@ fn main() -> Result<()> {
 
                 // print stats
                 let diffs = vblank_time_vec.windows(2).map(|w| w[1] - w[0]).collect();
+                println!("Scanline: {}", scanline.ScanLine);
                 report_stats(&diffs, "VBlank");
             }
 
