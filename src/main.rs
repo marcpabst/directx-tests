@@ -1104,7 +1104,7 @@ fn main() -> Result<()> {
         println!("Starting scanline polling thread");
         let mut vblank_time_vec = vec![];
 
-        print!("Starting scanline polling thread");
+        println!("Starting scanline polling thread");
 
         loop {
             unsafe { D3DKMTGetScanLine(&mut scanline) };
