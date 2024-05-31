@@ -1,3 +1,4 @@
+use thread_priority::{set_current_thread_priority, ThreadPriority};
 use windows::{
     core::*,
     Wdk::Graphics::Direct3D::*,
@@ -1089,6 +1090,8 @@ fn main() -> Result<()> {
 
     // create a thread to poll the scanline
     std::thread::spawn(move || {
+        assert!(set_current_thread_priority(ThreadPriority::Max).is_ok());
+
         let hndl = get_vblank_handle().unwrap();
 
         let mut scanline: D3DKMT_GETSCANLINE = Default::default();
@@ -1109,7 +1112,7 @@ fn main() -> Result<()> {
 
             let is_in_vblank = scanline.InVerticalBlank.as_bool();
 
-             if !is_in_vblank && was_in_vblank {
+            if !is_in_vblank && was_in_vblank {
                 // We just left the vblank
 
                 let t = start.elapsed().as_secs_f64() * 1000.0;
