@@ -1093,6 +1093,8 @@ fn main() -> Result<()> {
 
         let mut scanline: D3DKMT_GETSCANLINE = Default::default();
 
+        let mut calc = refresh_rates::RefreshRateCalculator::new();
+
         scanline.hAdapter = hndl.hAdapter;
         scanline.VidPnSourceId = hndl.VidPnSourceId;
 
@@ -1123,6 +1125,11 @@ fn main() -> Result<()> {
                 let diffs = vblank_time_vec.windows(2).map(|w| w[1] - w[0]).collect();
                 println!("Scanline: {}", scanline.ScanLine);
                 report_stats(&diffs, "VBlank");
+
+                // fps estimation
+                calc.count_cycle(t);
+                let fps = calc.get_current_frequency();
+                println!("Current estimated FPS: {}", fps);
             }
 
             was_in_vblank = is_in_vblank;
