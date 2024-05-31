@@ -78,10 +78,11 @@ fn report_stats(data: &Vec<f64>, name: &str) {
     let variance = variance(data);
     let min = mininum(data);
     let max = maximum(data);
+    let n = data.len();
 
     println!(
-        "{}: mean: {:.5} std_dev: {:.5} variance: {:.5}, range: {:.5}..{:.5}",
-        name, mean, std_dev, variance, min, max
+        "{}: mean: {:.5} std_dev: {:.5} variance: {:.5}, range: {:.5}..{:.5} (n={})",
+        name, mean, std_dev, variance, min, max, n
     );
 }
 
