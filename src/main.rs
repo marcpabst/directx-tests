@@ -969,27 +969,25 @@ mod d3d12_hello_triangle {
         unsafe { D3DKMTWaitForVerticalBlankEvent(&mut resources.wait_for_vblank_event) };
 
         // take timestamp
-        let mut after_vblank = i64::default();
-        unsafe { QueryPerformanceCounter(&mut after_vblank) };
+        let mut vblank_timestamp_wait = i64::default();
+        unsafe { QueryPerformanceCounter(&mut vblank_timestamp_wait) };
 
-        // get current qpc timestamp
-        let mut now = i64::default();
-        unsafe { QueryPerformanceCounter(&mut now) };
-
-        let (mut count_after, mut qpc_timestamp_vblank) = get_current_flip_count(swap_chain);
+        let (mut count_after, mut vblanc_timestamp_interupt) = get_current_flip_count(swap_chain);
 
         // busy wait until the flip count changes
         while count_after == count_before {
-            (count_after, qpc_timestamp_vblank) = get_current_flip_count(swap_chain);
+            (count_after, vblanc_timestamp_interupt) = get_current_flip_count(swap_chain);
         }
 
         let mut later = i64::default();
         unsafe { QueryPerformanceCounter(&mut later) };
 
         // measure the time from return from WaitForVBlank to the flip to be reported through the frame statistics
-        let report_delay1 =
-            (qpc_timestamp_vblank - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
-        let report_delay2 = (later - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
+        let report_delay1 = (vblanc_timestamp_interupt - vblank_timestamp_wait) as f64
+            / qpc_frequency as f64
+            * 1_000_000.0;
+        let report_delay2 =
+            (later - vblank_timestamp_wait) as f64 / qpc_frequency as f64 * 1_000_000.0;
         println!("Scanline: {}", scanline.ScanLine);
         println!(
             "Report delay between WaitForVBlank and flip timestamped through frame statistics: {} us",
@@ -1002,7 +1000,7 @@ mod d3d12_hello_triangle {
         );
 
         // add the timestamp to frame_rate_calc
-        let last_vblank_ms = qpc_timestamp_vblank as f64 / qpc_frequency as f64 * 1000.0;
+        let last_vblank_ms = vblanc_timestamp_interupt as f64 / qpc_frequency as f64 * 1000.0;
         resources.frame_rate_calc.count_cycle(last_vblank_ms);
 
         // get current estimated fps
@@ -1022,13 +1020,14 @@ mod d3d12_hello_triangle {
 
         // add the flip count to the frame_times vector
         let vblank_to_vblank_interupt =
-            (qpc_timestamp_vblank - *LAST_INTERUPT_TIMESTAMP.lock().unwrap()) as f64
+            (vblanc_timestamp_interupt - *LAST_INTERUPT_TIMESTAMP.lock().unwrap()) as f64
                 / qpc_frequency as f64
                 * 1000.0;
 
-        let vblank_to_vblank_vblank =
-            (after_vblank - *LAST_VLBANK_TIMESTAMP.lock().unwrap()) as f64 / qpc_frequency as f64
-                * 1000.0;
+        let vblank_to_vblank_vblank = (vblank_timestamp_wait
+            - *LAST_VLBANK_TIMESTAMP.lock().unwrap()) as f64
+            / qpc_frequency as f64
+            * 1000.0;
 
         resources
             .frame_times_interupt
@@ -1052,8 +1051,8 @@ mod d3d12_hello_triangle {
 
         resources.frame_index = unsafe { resources.swap_chain.GetCurrentBackBufferIndex() };
 
-        *LAST_INTERUPT_TIMESTAMP.lock().unwrap() = qpc_timestamp_vblank;
-        *LAST_VLBANK_TIMESTAMP.lock().unwrap() = after_vblank;
+        *LAST_INTERUPT_TIMESTAMP.lock().unwrap() = vblanc_timestamp_interupt;
+        *LAST_VLBANK_TIMESTAMP.lock().unwrap() = vblank_timestamp_wait;
     }
 }
 
