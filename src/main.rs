@@ -1,8 +1,5 @@
 use windows::{
-    core::*, Wdk::Graphics::Direct3D::*, Win32::Foundation::*, Win32::Graphics::Direct3D::Fxc::*,
-    Win32::Graphics::Direct3D::*, Win32::Graphics::Direct3D12::*, Win32::Graphics::Dxgi::Common::*,
-    Win32::Graphics::Dxgi::*, Win32::System::LibraryLoader::*, Win32::System::Performance::*,
-    Win32::System::Threading::*, Win32::UI::WindowsAndMessaging::*,
+    core::*, Wdk::Graphics::Direct3D::*, Win32::{Foundation::*, Graphics::{Direct3D::{Fxc::*, *}, Direct3D12::*, Dxgi::{Common::*, *}, Gdi::{CreateDCW, DeleteDC, EnumDisplayDevicesW, DISPLAY_DEVICEW, DISPLAY_DEVICE_PRIMARY_DEVICE}}, System::{LibraryLoader::*, Performance::*, Threading::*}, UI::WindowsAndMessaging::*},
 };
 
 use std::mem::transmute;
@@ -12,8 +9,66 @@ mod refresh_rates;
 // set up a static mutex containing a instant
 lazy_static::lazy_static! {
     static ref LAST_TIME: std::sync::Mutex<std::time::Instant> = std::sync::Mutex::new(std::time::Instant::now());
-    static ref LAST_FRAME: std::sync::Mutex<i64> = std::sync::Mutex::new(0);
+    static ref LAST_VLBANK_TIMESTAMP: std::sync::Mutex<i64> = std::sync::Mutex::new(0);
     static ref LAST_FLIP: std::sync::Mutex<u32> = std::sync::Mutex::new(0);
+}
+
+fn variance(data: &Vec<f64>) -> f64 {
+    let mean = data.iter().sum::<f64>() / data.len() as f64;
+    let variance = data.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / data.len() as f64;
+    variance
+}
+
+fn std_dev(data: &Vec<f64>) -> f64 {
+    variance(data).sqrt()
+}
+
+fn mean(data: &Vec<f64>) -> f64 {
+    data.iter().sum::<f64>() / data.len() as f64
+}
+
+fn get_vblank_handle() -> Option<D3DKMT_WAITFORVERTICALBLANKEVENT> {
+    let mut dd = DISPLAY_DEVICEW::default();
+    dd.cb = std::mem::size_of::<DISPLAY_DEVICEW>() as u32;
+
+    let mut device_num = 0;
+    while unsafe { EnumDisplayDevicesW(None, device_num, &mut dd, 0).as_bool() } {
+        // DumpDevice(dd, 0); // You can implement this function if needed
+
+        if dd.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE != 0 {
+            break;
+        }
+
+        device_num += 1;
+    }
+
+    
+    // convert device name to a HSRTING
+    let device_name: [u16; 32] = dd.DeviceName;
+    let device_name = device_name.iter().copied().chain(std::iter::once(0)).collect::<Vec<_>>();
+    let device_name: String = String::from_utf16(&device_name).unwrap();
+    let device_name: &HSTRING =  &HSTRING::from(device_name);
+
+    let hdc = unsafe { CreateDCW(None, device_name, None, None) };
+    if hdc.is_invalid() {
+        return None;
+    }
+
+    let mut open_adapter_data = D3DKMT_OPENADAPTERFROMHDC::default();
+    open_adapter_data.hDc = hdc;
+    if unsafe { D3DKMTOpenAdapterFromHdc(&mut open_adapter_data) } == STATUS_SUCCESS {
+        unsafe { DeleteDC(hdc) };
+    } else {
+        unsafe { DeleteDC(hdc) };
+        return None;
+    }
+
+    let mut we = D3DKMT_WAITFORVERTICALBLANKEVENT::default();
+    we.hAdapter = open_adapter_data.hAdapter;
+    we.hDevice = 0; // Optional: You can use OpenDeviceHandle to get the device handle
+    we.VidPnSourceId = open_adapter_data.VidPnSourceId;
+
+    Some(we)
 }
 
 trait DXSample {
@@ -113,7 +168,11 @@ where
 
     sample.bind_to_window(&hwnd)?;
 
+    println!("hello from run_sample 3");
+
     unsafe { _ = ShowWindow(hwnd, SW_SHOW) };
+
+    println!("hello from run_sample 4");
 
     loop {
         let mut message = MSG::default();
@@ -221,6 +280,8 @@ fn get_hardware_adapter(factory: &IDXGIFactory4) -> Result<IDXGIAdapter1> {
 
 mod d3d12_hello_triangle {
 
+    use std::f32::consts::E;
+
     use super::*;
 
     const FRAME_COUNT: u32 = 2;
@@ -236,6 +297,7 @@ mod d3d12_hello_triangle {
         command_queue: ID3D12CommandQueue,
         swap_chain: IDXGISwapChain3,
         adapter: IDXGIAdapter1,
+        wait_for_vblank_event: D3DKMT_WAITFORVERTICALBLANKEVENT,
         frame_index: u32,
         render_targets: [ID3D12Resource; FRAME_COUNT as usize],
         rtv_heap: ID3D12DescriptorHeap,
@@ -258,6 +320,8 @@ mod d3d12_hello_triangle {
         fence_event: HANDLE,
 
         frame_rate_calc: refresh_rates::RefreshRateCalculator,
+        frame_times_wait_for_vblank: Vec<f64>,
+        frame_times_qpc: Vec<f64>,
     }
 
     impl DXSample for Sample {
@@ -407,10 +471,13 @@ mod d3d12_hello_triangle {
 
             let fence_event = unsafe { CreateEventA(None, false, false, None)? };
 
+            println!("hello from bind_to_window");
+
             self.resources = Some(Resources {
                 command_queue,
                 swap_chain,
                 adapter: adapter,
+                wait_for_vblank_event: get_vblank_handle().unwrap(),
                 frame_index,
                 render_targets,
                 rtv_heap,
@@ -427,7 +494,11 @@ mod d3d12_hello_triangle {
                 fence_value,
                 fence_event,
                 frame_rate_calc: refresh_rates::RefreshRateCalculator::new(),
+                frame_times_qpc: vec![],
+                frame_times_wait_for_vblank: vec![],
             });
+
+            println!("hello from bind_to_window 2");
 
             Ok(())
         }
@@ -453,9 +524,6 @@ mod d3d12_hello_triangle {
 
                 wait_for_previous_frame(resources);
 
-                // randomly stall the thread to simulate work
-                let stall_time = rand::random::<u64>() % 10;
-                std::thread::sleep(std::time::Duration::from_millis(stall_time));
             }
         }
     }
@@ -832,7 +900,14 @@ mod d3d12_hello_triangle {
         //     unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
         // }
 
-        // wait for vblank using IDXGIOutput.WaitForVBlank
+        // get current scanline
+        let mut scanline: D3DKMT_GETSCANLINE = Default::default();
+        scanline.hAdapter = resources.wait_for_vblank_event.hAdapter;
+        scanline.VidPnSourceId = resources.wait_for_vblank_event.VidPnSourceId;
+
+        unsafe { D3DKMTGetScanLine(&mut scanline) };
+
+       
         let swap_chain = &resources.swap_chain;
         let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
 
@@ -841,39 +916,33 @@ mod d3d12_hello_triangle {
         let mut qpc_frequency = i64::default();
         unsafe { QueryPerformanceFrequency(&mut qpc_frequency) };
 
+        // while scanline.InVerticalBlank.as_bool() == false {
+        //     unsafe { D3DKMTGetScanLine(&mut scanline) };
+        // }
+
         //unsafe { output.WaitForVBlank().unwrap() };
+    
 
-        let mut output_desc = DXGI_OUTPUT_DESC::default();
-        unsafe { output.GetDesc(&mut output_desc) }.unwrap();
-
-        let mut adapter_desc = DXGI_ADAPTER_DESC1::default();
-        unsafe { resources.adapter.GetDesc1(&mut adapter_desc) }.unwrap();
-
-        let mut waitForVBlankEvent = D3DKMT_WAITFORVERTICALBLANKEVENT::default();
-        waitForVBlankEvent.VidPnSourceId = 0;
-        waitForVBlankEvent.hAdapter = adapter_desc.AdapterLuid.LowPart;
-        waitForVBlankEvent.hDevice = 0;
-
-        unsafe { D3DKMTWaitForVerticalBlankEvent(&mut waitForVBlankEvent) };
+        //unsafe { D3DKMTWaitForVerticalBlankEvent(&mut resources.wait_for_vblank_event) };
 
         // get current qpc timestamp
         let mut now = i64::default();
         unsafe { QueryPerformanceCounter(&mut now) };
 
-        let (mut count_after, mut last_vblank) = get_current_flip_count(swap_chain);
+        let (mut count_after, mut qpc_timestamp_vblank) = get_current_flip_count(swap_chain);
 
         // busy wait until the flip count changes
         while count_after == count_before {
-            (count_after, last_vblank) = get_current_flip_count(swap_chain);
+            (count_after, qpc_timestamp_vblank) = get_current_flip_count(swap_chain);
         }
 
         let mut later = i64::default();
         unsafe { QueryPerformanceCounter(&mut later) };
 
         // measure the time from return from WaitForVBlank to the flip to be reported through the frame statistics
-        let report_delay1 = (last_vblank - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
+        let report_delay1 = (qpc_timestamp_vblank - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
         let report_delay2 = (later - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
-
+        println!("Scanline: {}", scanline.ScanLine);
         println!(
             "Report delay between WaitForVBlank and flip timestamped through frame statistics: {} us",
             report_delay1
@@ -885,7 +954,7 @@ mod d3d12_hello_triangle {
         );
 
         // add the timestamp to frame_rate_calc
-        let last_vblank_ms = last_vblank as f64 / qpc_frequency as f64 * 1000.0;
+        let last_vblank_ms = qpc_timestamp_vblank as f64 / qpc_frequency as f64 * 1000.0;
         resources.frame_rate_calc.count_cycle(last_vblank_ms);
 
         // get current estimated fps
@@ -898,8 +967,27 @@ mod d3d12_hello_triangle {
         if diff > 1 {
             println!("Missed {} flips", diff - 1);
         }
+        else if diff == 1 {
+            println!("No missed flips");	
+        } else {
+            println!("Skipped {} flips", diff);
+        }
 
+        // add the flip count to the frame_times vector
+        let vblank_to_vblank = (qpc_timestamp_vblank - *LAST_VLBANK_TIMESTAMP.lock().unwrap()) as f64 / qpc_frequency as f64 * 1000.0;
+        resources.frame_times_wait_for_vblank.push( vblank_to_vblank );
+
+        if resources.frame_times_wait_for_vblank.len() > 100 {
+            resources.frame_times_wait_for_vblank.remove(0);
+        }
+
+        // calculate the variance of the frame times
+
+        println!("Frame-to-frame time... mean: {} ms, std dev: {} ms", mean(&resources.frame_times_wait_for_vblank), std_dev(&resources.frame_times_wait_for_vblank));
+
+        
         *LAST_FLIP.lock().unwrap() = count_after;
+        *LAST_VLBANK_TIMESTAMP.lock().unwrap() = qpc_timestamp_vblank;
 
         resources.frame_index = unsafe { resources.swap_chain.GetCurrentBackBufferIndex() };
     }
@@ -907,6 +995,5 @@ mod d3d12_hello_triangle {
 
 fn main() -> Result<()> {
     run_sample::<d3d12_hello_triangle::Sample>()?;
-
     Ok(())
 }
