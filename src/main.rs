@@ -1095,7 +1095,7 @@ fn main() -> Result<()> {
         scanline.hAdapter = hndl.hAdapter;
         scanline.VidPnSourceId = hndl.VidPnSourceId;
 
-        let was_in_vblank = false;
+        let mut was_in_vblank = false;
 
         let start = std::time::Instant::now();
 
@@ -1103,8 +1103,6 @@ fn main() -> Result<()> {
 
         loop {
             unsafe { D3DKMTGetScanLine(&mut scanline) };
-
-            println!("Scanline: {}", scanline.ScanLine);
 
             if scanline.InVerticalBlank.as_bool() && !was_in_vblank {
                 //tx.send(VBlankEvent::VBlankBegin).unwrap();
@@ -1118,6 +1116,8 @@ fn main() -> Result<()> {
                 }
                 // print stats
                 report_stats(&vblank_time_vec, "VBlank");
+
+                was_in_vblank = scanline.InVerticalBlank.as_bool();
             }
         }
     })
