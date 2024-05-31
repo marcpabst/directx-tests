@@ -5,7 +5,6 @@ use windows::{
     Win32::System::Threading::*, Win32::UI::WindowsAndMessaging::*,
 };
 
-use polars;
 use std::mem::transmute;
 
 mod refresh_rates;
@@ -283,7 +282,7 @@ mod d3d12_hello_triangle {
 
             let (width, height) = self.window_size();
 
-            let adapter = &self.adapter;
+            let adapter = self.adapter.clone();
 
             let swap_chain_desc = DXGI_SWAP_CHAIN_DESC1 {
                 BufferCount: FRAME_COUNT,
@@ -411,7 +410,7 @@ mod d3d12_hello_triangle {
             self.resources = Some(Resources {
                 command_queue,
                 swap_chain,
-                adapter: *adapter,
+                adapter: adapter,
                 frame_index,
                 render_targets,
                 rtv_heap,
