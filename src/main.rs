@@ -1114,8 +1114,10 @@ fn main() -> Result<()> {
                 if vblank_time_vec.len() > 1000 {
                     vblank_time_vec.remove(0);
                 }
+
                 // print stats
-                report_stats(&vblank_time_vec, "VBlank");
+                let diffs = vblank_time_vec.windows(2).map(|w| w[1] - w[0]).collect();
+                report_stats(&diffs, "VBlank");
             }
             was_in_vblank = scanline.InVerticalBlank.as_bool();
         }
