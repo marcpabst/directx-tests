@@ -1090,9 +1090,13 @@ fn main() -> Result<()> {
     std::thread::spawn(move || {
         let hndl = get_vblank_handle().unwrap();
         println!("Got handle");
+
         let mut scanline: D3DKMT_GETSCANLINE = Default::default();
+
         scanline.hAdapter = hndl.hAdapter;
         scanline.VidPnSourceId = hndl.VidPnSourceId;
+
+        println!("Starting scanline polling thread");
 
         let was_in_vblank = false;
 
