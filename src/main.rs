@@ -979,8 +979,6 @@ mod d3d12_hello_triangle {
             unsafe { D3DKMTGetScanLine(&mut scanline) };
         }
 
-        println!("In vertical blank");
-
         while scanline.InVerticalBlank.as_bool() == true {
             unsafe { D3DKMTGetScanLine(&mut scanline) };
         }
@@ -1009,16 +1007,16 @@ mod d3d12_hello_triangle {
             * 1_000_000.0;
         let report_delay2 =
             (later - vblank_timestamp_wait) as f64 / qpc_frequency as f64 * 1_000_000.0;
-        println!("Scanline: {}", scanline.ScanLine);
-        println!(
-            "Report delay between WaitForVBlank and flip timestamped through frame statistics: {} us",
-            report_delay1
-        );
+        // println!("Scanline: {}", scanline.ScanLine);
+        // println!(
+        //     "Report delay between WaitForVBlank and flip timestamped through frame statistics: {} us",
+        //     report_delay1
+        // );
 
-        println!(
-            "Report delay between WaitForVBlank and flip polled through frame statistics: {} us",
-            report_delay2
-        );
+        // println!(
+        //     "Report delay between WaitForVBlank and flip polled through frame statistics: {} us",
+        //     report_delay2
+        // );
 
         // add the timestamp to frame_rate_calc
         let last_vblank_ms = vblanc_timestamp_interupt as f64 / qpc_frequency as f64 * 1000.0;
@@ -1026,7 +1024,7 @@ mod d3d12_hello_triangle {
 
         // get current estimated fps
         let fps = resources.frame_rate_calc.get_current_frequency();
-        println!("Current estimated FPS: {}", fps);
+        //println!("Current estimated FPS: {}", fps);
 
         let diff = count_after - count_before;
 
@@ -1034,7 +1032,7 @@ mod d3d12_hello_triangle {
         if diff > 1 {
             println!("Missed {} flips", diff - 1);
         } else if diff == 1 {
-            println!("No missed flips");
+            //println!("No missed flips");
         } else {
             println!("Skipped {} flips", diff);
         }
