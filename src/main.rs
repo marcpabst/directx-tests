@@ -1115,7 +1115,7 @@ fn main() -> Result<()> {
                 let t = start.elapsed().as_secs_f64() * 1000.0;
                 vblank_time_vec.push(t);
 
-                if vblank_time_vec.len() > 100 {
+                if vblank_time_vec.len() > 1000 {
                     vblank_time_vec.remove(0);
                 }
 
