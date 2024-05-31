@@ -1108,7 +1108,7 @@ fn main() -> Result<()> {
         let mut vblank_time_vec = vec![start.elapsed().as_secs_f64()];
 
         loop {
-            unsafe { D3DKMTGetScanLine(&mut scanline) };
+            time!({ unsafe { D3DKMTGetScanLine(&mut scanline) } });
 
             let is_in_vblank = scanline.InVerticalBlank.as_bool();
 
