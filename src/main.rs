@@ -1108,7 +1108,7 @@ fn main() -> Result<()> {
                 //tx.send(VBlankEvent::VBlankBegin).unwrap();
             } else if !scanline.InVerticalBlank.as_bool() && was_in_vblank {
                 //tx.send(VBlankEvent::VBlankEnd).unwrap();
-                let t = start.elapsed().as_secs_f64();
+                let t = start.elapsed().as_secs_f64() * 1000.0;
                 vblank_time_vec.push(t);
 
                 if vblank_time_vec.len() > 100 {
