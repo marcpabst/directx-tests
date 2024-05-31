@@ -1099,6 +1099,8 @@ fn main() -> Result<()> {
         let start = std::time::Instant::now();
         let mut vblank_time_vec = vec![];
 
+        print!("Starting scanline polling thread");
+
         loop {
             unsafe { D3DKMTGetScanLine(&mut scanline) };
 
@@ -1117,8 +1119,7 @@ fn main() -> Result<()> {
                 report_stats(&vblank_time_vec, "VBlank");
             }
         }
-    })
-    .join();
+    });
 
     run_sample::<d3d12_hello_triangle::Sample>()?;
     Ok(())
