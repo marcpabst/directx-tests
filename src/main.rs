@@ -29,6 +29,21 @@ lazy_static::lazy_static! {
     static ref LAST_FLIP: std::sync::Mutex<u32> = std::sync::Mutex::new(0);
 }
 
+// macro to time funsction calls
+// example usage:
+// time! {
+//     let x = 1 + 1;
+// }
+macro_rules! time {
+    ($block:block) => {{
+        let start = std::time::Instant::now();
+        let result = { $block };
+        let duration = start.elapsed();
+        println!("Time elapsed: {:?}", duration);
+        result
+    }};
+}
+
 fn variance(data: &Vec<f64>) -> f64 {
     let mean = data.iter().sum::<f64>() / data.len() as f64;
     let variance = data.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / data.len() as f64;
@@ -950,7 +965,7 @@ mod d3d12_hello_triangle {
         scanline.hAdapter = resources.wait_for_vblank_event.hAdapter;
         scanline.VidPnSourceId = resources.wait_for_vblank_event.VidPnSourceId;
 
-        unsafe { D3DKMTGetScanLine(&mut scanline) };
+        unsafe { time!({ D3DKMTGetScanLine(&mut scanline) }) };
 
         let swap_chain = &resources.swap_chain;
         let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
