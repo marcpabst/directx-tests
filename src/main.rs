@@ -1101,6 +1101,7 @@ fn main() -> Result<()> {
         let was_in_vblank = false;
 
         let start = std::time::Instant::now();
+        println!("Starting scanline polling thread");
         let mut vblank_time_vec = vec![];
 
         print!("Starting scanline polling thread");
