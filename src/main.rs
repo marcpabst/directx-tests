@@ -1104,9 +1104,11 @@ fn main() -> Result<()> {
         loop {
             unsafe { D3DKMTGetScanLine(&mut scanline) };
 
-            if scanline.InVerticalBlank.as_bool() && !was_in_vblank {
+            let is_in_vblank = scanline.InVerticalBlank.as_bool();
+
+            if is_in_vblank && !was_in_vblank {
                 //tx.send(VBlankEvent::VBlankBegin).unwrap();
-            } else if !scanline.InVerticalBlank.as_bool() && was_in_vblank {
+            } else if !is_in_vblank && was_in_vblank {
                 //tx.send(VBlankEvent::VBlankEnd).unwrap();
                 let t = start.elapsed().as_secs_f64() * 1000.0;
                 vblank_time_vec.push(t);
@@ -1119,7 +1121,8 @@ fn main() -> Result<()> {
                 let diffs = vblank_time_vec.windows(2).map(|w| w[1] - w[0]).collect();
                 report_stats(&diffs, "VBlank");
             }
-            was_in_vblank = scanline.InVerticalBlank.as_bool();
+
+            was_in_vblank = is_in_vblank;
         }
     });
     run_sample::<d3d12_hello_triangle::Sample>()?;
