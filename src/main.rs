@@ -1117,7 +1117,8 @@ fn main() -> Result<()> {
                 report_stats(&vblank_time_vec, "VBlank");
             }
         }
-    });
+    })
+    .join();
 
     run_sample::<d3d12_hello_triangle::Sample>()?;
     Ok(())
