@@ -117,6 +117,7 @@ fn get_vblank_handle() -> Option<D3DKMT_WAITFORVERTICALBLANKEVENT> {
 
     let mut open_adapter_data = D3DKMT_OPENADAPTERFROMHDC::default();
     open_adapter_data.hDc = hdc;
+
     if unsafe { D3DKMTOpenAdapterFromHdc(&mut open_adapter_data) } == STATUS_SUCCESS {
         unsafe { DeleteDC(hdc) };
     } else {
@@ -1087,8 +1088,8 @@ fn main() -> Result<()> {
 
     // create a thread to poll the scanline
     std::thread::spawn(move || {
-        println!("Hello from scanline polling thread");
         let hndl = get_vblank_handle().unwrap();
+        println!("Got handle");
         let mut scanline: D3DKMT_GETSCANLINE = Default::default();
         scanline.hAdapter = hndl.hAdapter;
         scanline.VidPnSourceId = hndl.VidPnSourceId;
