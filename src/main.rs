@@ -1099,7 +1099,7 @@ fn main() -> Result<()> {
 
         let start = std::time::Instant::now();
 
-        let mut vblank_time_vec = vec![];
+        let mut vblank_time_vec = vec![start.elapsed().as_secs_f64()];
 
         loop {
             unsafe { D3DKMTGetScanLine(&mut scanline) };
