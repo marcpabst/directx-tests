@@ -1,10 +1,11 @@
 use windows::{
-    core::*, Win32::Foundation::*, Win32::Graphics::Direct3D::Fxc::*, Win32::Graphics::Direct3D::*,
-    Win32::Graphics::Direct3D12::*, Win32::Graphics::Dxgi::Common::*, Win32::Graphics::Dxgi::*,
-    Win32::System::LibraryLoader::*, Win32::System::Performance::*, Win32::System::Threading::*,
-    Win32::UI::WindowsAndMessaging::*,
+    core::*, Wdk::Graphics::Direct3D::*, Win32::Foundation::*, Win32::Graphics::Direct3D::Fxc::*,
+    Win32::Graphics::Direct3D::*, Win32::Graphics::Direct3D12::*, Win32::Graphics::Dxgi::Common::*,
+    Win32::Graphics::Dxgi::*, Win32::System::LibraryLoader::*, Win32::System::Performance::*,
+    Win32::System::Threading::*, Win32::UI::WindowsAndMessaging::*,
 };
 
+use polars;
 use std::mem::transmute;
 
 mod refresh_rates;
@@ -228,12 +229,14 @@ mod d3d12_hello_triangle {
     pub struct Sample {
         dxgi_factory: IDXGIFactory4,
         device: ID3D12Device,
+        adapter: IDXGIAdapter1,
         resources: Option<Resources>,
     }
 
     struct Resources {
         command_queue: ID3D12CommandQueue,
         swap_chain: IDXGISwapChain3,
+        adapter: IDXGIAdapter1,
         frame_index: u32,
         render_targets: [ID3D12Resource; FRAME_COUNT as usize],
         rtv_heap: ID3D12DescriptorHeap,
@@ -260,11 +263,12 @@ mod d3d12_hello_triangle {
 
     impl DXSample for Sample {
         fn new(command_line: &SampleCommandLine) -> Result<Self> {
-            let (dxgi_factory, device) = create_device(command_line)?;
+            let (dxgi_factory, device, adapter) = create_device(command_line)?;
 
             Ok(Sample {
                 dxgi_factory,
                 device,
+                adapter,
                 resources: None,
             })
         }
@@ -278,6 +282,8 @@ mod d3d12_hello_triangle {
             };
 
             let (width, height) = self.window_size();
+
+            let adapter = &self.adapter;
 
             let swap_chain_desc = DXGI_SWAP_CHAIN_DESC1 {
                 BufferCount: FRAME_COUNT,
@@ -405,6 +411,7 @@ mod d3d12_hello_triangle {
             self.resources = Some(Resources {
                 command_queue,
                 swap_chain,
+                adapter: *adapter,
                 frame_index,
                 render_targets,
                 rtv_heap,
@@ -534,7 +541,9 @@ mod d3d12_hello_triangle {
         }
     }
 
-    fn create_device(command_line: &SampleCommandLine) -> Result<(IDXGIFactory4, ID3D12Device)> {
+    fn create_device(
+        command_line: &SampleCommandLine,
+    ) -> Result<(IDXGIFactory4, ID3D12Device, IDXGIAdapter1)> {
         if cfg!(debug_assertions) {
             unsafe {
                 let mut debug: Option<ID3D12Debug> = None;
@@ -560,7 +569,7 @@ mod d3d12_hello_triangle {
 
         let mut device: Option<ID3D12Device> = None;
         unsafe { D3D12CreateDevice(&adapter, D3D_FEATURE_LEVEL_11_0, &mut device) }?;
-        Ok((dxgi_factory, device.unwrap()))
+        Ok((dxgi_factory, device.unwrap(), adapter))
     }
 
     fn create_root_signature(device: &ID3D12Device) -> Result<ID3D12RootSignature> {
@@ -833,7 +842,20 @@ mod d3d12_hello_triangle {
         let mut qpc_frequency = i64::default();
         unsafe { QueryPerformanceFrequency(&mut qpc_frequency) };
 
-        unsafe { output.WaitForVBlank().unwrap() };
+        //unsafe { output.WaitForVBlank().unwrap() };
+
+        let mut output_desc = DXGI_OUTPUT_DESC::default();
+        unsafe { output.GetDesc(&mut output_desc) }.unwrap();
+
+        let mut adapter_desc = DXGI_ADAPTER_DESC1::default();
+        unsafe { resources.adapter.GetDesc1(&mut adapter_desc) }.unwrap();
+
+        let mut waitForVBlankEvent = D3DKMT_WAITFORVERTICALBLANKEVENT::default();
+        waitForVBlankEvent.VidPnSourceId = 0;
+        waitForVBlankEvent.hAdapter = adapter_desc.AdapterLuid.LowPart;
+        waitForVBlankEvent.hDevice = 0;
+
+        unsafe { D3DKMTWaitForVerticalBlankEvent(&mut waitForVBlankEvent) };
 
         // get current qpc timestamp
         let mut now = i64::default();
