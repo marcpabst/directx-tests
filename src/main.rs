@@ -1109,7 +1109,6 @@ fn main() -> Result<()> {
 
             if is_in_vblank && !was_in_vblank {
                 // We just entered the vblank
-                continue;
             } else if !is_in_vblank && was_in_vblank {
                 // We just left the vblank
 
