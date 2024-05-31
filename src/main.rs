@@ -1107,8 +1107,11 @@ fn main() -> Result<()> {
 
         let mut vblank_time_vec = vec![start.elapsed().as_secs_f64()];
 
+        let mut i = 0;
+
         loop {
-            time!({ unsafe { D3DKMTGetScanLine(&mut scanline) } });
+            unsafe { D3DKMTGetScanLine(&mut scanline) };
+            i += 1;
 
             let is_in_vblank = scanline.InVerticalBlank.as_bool();
 
@@ -1124,7 +1127,7 @@ fn main() -> Result<()> {
 
                 // print stats
                 let diffs = vblank_time_vec.windows(2).map(|w| w[1] - w[0]).collect();
-                println!("Scanline: {}", scanline.ScanLine);
+                println!("Loop took: {} iterations", i);
                 report_stats(&diffs, "VBlank");
 
                 // // fps estimation
@@ -1136,6 +1139,7 @@ fn main() -> Result<()> {
                 //std::thread::sleep(std::time::Duration::from_millis(1));
 
                 println!("VBlank end");
+                i = 0;
             }
 
             was_in_vblank = is_in_vblank;
