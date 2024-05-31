@@ -1108,9 +1108,11 @@ fn main() -> Result<()> {
             let is_in_vblank = scanline.InVerticalBlank.as_bool();
 
             if is_in_vblank && !was_in_vblank {
-                //tx.send(VBlankEvent::VBlankBegin).unwrap();
+                // We just entered the vblank
+                continue;
             } else if !is_in_vblank && was_in_vblank {
-                //tx.send(VBlankEvent::VBlankEnd).unwrap();
+                // We just left the vblank
+
                 let t = start.elapsed().as_secs_f64() * 1000.0;
                 vblank_time_vec.push(t);
 
