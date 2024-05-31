@@ -979,6 +979,10 @@ mod d3d12_hello_triangle {
             unsafe { D3DKMTGetScanLine(&mut scanline) };
         }
 
+        while scanline.InVerticalBlank.as_bool() == true {
+            unsafe { D3DKMTGetScanLine(&mut scanline) };
+        }
+
         //unsafe { output.WaitForVBlank().unwrap() };
 
         // unsafe { D3DKMTWaitForVerticalBlankEvent(&mut resources.wait_for_vblank_event) };
