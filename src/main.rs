@@ -966,7 +966,7 @@ mod d3d12_hello_triangle {
 
         //unsafe { output.WaitForVBlank().unwrap() };
 
-        unsafe { D3DKMTWaitForVerticalBlankEvent(&mut resources.wait_for_vblank_event) };
+        //unsafe { D3DKMTWaitForVerticalBlankEvent(&mut resources.wait_for_vblank_event) };
 
         // take timestamp
         let mut vblank_timestamp_wait = i64::default();
@@ -1053,6 +1053,7 @@ mod d3d12_hello_triangle {
 
         *LAST_INTERUPT_TIMESTAMP.lock().unwrap() = vblanc_timestamp_interupt;
         *LAST_VLBANK_TIMESTAMP.lock().unwrap() = vblank_timestamp_wait;
+        *LAST_FLIP.lock().unwrap() = count_after;
     }
 }
 
