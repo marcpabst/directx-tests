@@ -1,5 +1,20 @@
 use windows::{
-    core::*, Wdk::Graphics::Direct3D::*, Win32::{Foundation::*, Graphics::{Direct3D::{Fxc::*, *}, Direct3D12::*, Dxgi::{Common::*, *}, Gdi::{CreateDCW, DeleteDC, EnumDisplayDevicesW, DISPLAY_DEVICEW, DISPLAY_DEVICE_PRIMARY_DEVICE}}, System::{LibraryLoader::*, Performance::*, Threading::*}, UI::WindowsAndMessaging::*},
+    core::*,
+    Wdk::Graphics::Direct3D::*,
+    Win32::{
+        Foundation::*,
+        Graphics::{
+            Direct3D::{Fxc::*, *},
+            Direct3D12::*,
+            Dxgi::{Common::*, *},
+            Gdi::{
+                CreateDCW, DeleteDC, EnumDisplayDevicesW, DISPLAY_DEVICEW,
+                DISPLAY_DEVICE_PRIMARY_DEVICE,
+            },
+        },
+        System::{LibraryLoader::*, Performance::*, Threading::*},
+        UI::WindowsAndMessaging::*,
+    },
 };
 
 use std::mem::transmute;
@@ -9,6 +24,7 @@ mod refresh_rates;
 // set up a static mutex containing a instant
 lazy_static::lazy_static! {
     static ref LAST_TIME: std::sync::Mutex<std::time::Instant> = std::sync::Mutex::new(std::time::Instant::now());
+    static ref LAST_INTERUPT_TIMESTAMP: std::sync::Mutex<i64> = std::sync::Mutex::new(0);
     static ref LAST_VLBANK_TIMESTAMP: std::sync::Mutex<i64> = std::sync::Mutex::new(0);
     static ref LAST_FLIP: std::sync::Mutex<u32> = std::sync::Mutex::new(0);
 }
@@ -27,6 +43,33 @@ fn mean(data: &Vec<f64>) -> f64 {
     data.iter().sum::<f64>() / data.len() as f64
 }
 
+fn mininum(data: &Vec<f64>) -> f64 {
+    *data
+        .iter()
+        .min_by(|a, b| a.partial_cmp(b).unwrap())
+        .unwrap()
+}
+
+fn maximum(data: &Vec<f64>) -> f64 {
+    *data
+        .iter()
+        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .unwrap()
+}
+
+fn report_stats(data: &Vec<f64>, name: &str) {
+    let mean = mean(data);
+    let std_dev = std_dev(data);
+    let variance = variance(data);
+    let min = mininum(data);
+    let max = maximum(data);
+
+    println!(
+        "{}: mean: {:.2} std_dev: {:.2} variance: {:.2}, range: {:.2}..{:.2}",
+        name, mean, std_dev, variance, min, max
+    );
+}
+
 fn get_vblank_handle() -> Option<D3DKMT_WAITFORVERTICALBLANKEVENT> {
     let mut dd = DISPLAY_DEVICEW::default();
     dd.cb = std::mem::size_of::<DISPLAY_DEVICEW>() as u32;
@@ -42,12 +85,15 @@ fn get_vblank_handle() -> Option<D3DKMT_WAITFORVERTICALBLANKEVENT> {
         device_num += 1;
     }
 
-    
     // convert device name to a HSRTING
     let device_name: [u16; 32] = dd.DeviceName;
-    let device_name = device_name.iter().copied().chain(std::iter::once(0)).collect::<Vec<_>>();
+    let device_name = device_name
+        .iter()
+        .copied()
+        .chain(std::iter::once(0))
+        .collect::<Vec<_>>();
     let device_name: String = String::from_utf16(&device_name).unwrap();
-    let device_name: &HSTRING =  &HSTRING::from(device_name);
+    let device_name: &HSTRING = &HSTRING::from(device_name);
 
     let hdc = unsafe { CreateDCW(None, device_name, None, None) };
     if hdc.is_invalid() {
@@ -321,7 +367,7 @@ mod d3d12_hello_triangle {
 
         frame_rate_calc: refresh_rates::RefreshRateCalculator,
         frame_times_wait_for_vblank: Vec<f64>,
-        frame_times_qpc: Vec<f64>,
+        frame_times_interupt: Vec<f64>,
     }
 
     impl DXSample for Sample {
@@ -494,7 +540,7 @@ mod d3d12_hello_triangle {
                 fence_value,
                 fence_event,
                 frame_rate_calc: refresh_rates::RefreshRateCalculator::new(),
-                frame_times_qpc: vec![],
+                frame_times_interupt: vec![],
                 frame_times_wait_for_vblank: vec![],
             });
 
@@ -523,7 +569,6 @@ mod d3d12_hello_triangle {
                 unsafe { resources.swap_chain.Present(1, 0) }.ok().unwrap();
 
                 wait_for_previous_frame(resources);
-
             }
         }
     }
@@ -907,7 +952,6 @@ mod d3d12_hello_triangle {
 
         unsafe { D3DKMTGetScanLine(&mut scanline) };
 
-       
         let swap_chain = &resources.swap_chain;
         let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
 
@@ -921,9 +965,12 @@ mod d3d12_hello_triangle {
         // }
 
         //unsafe { output.WaitForVBlank().unwrap() };
-    
 
-        //unsafe { D3DKMTWaitForVerticalBlankEvent(&mut resources.wait_for_vblank_event) };
+        unsafe { D3DKMTWaitForVerticalBlankEvent(&mut resources.wait_for_vblank_event) };
+
+        // take timestamp
+        let mut after_vblank = i64::default();
+        unsafe { QueryPerformanceCounter(&mut after_vblank) };
 
         // get current qpc timestamp
         let mut now = i64::default();
@@ -940,7 +987,8 @@ mod d3d12_hello_triangle {
         unsafe { QueryPerformanceCounter(&mut later) };
 
         // measure the time from return from WaitForVBlank to the flip to be reported through the frame statistics
-        let report_delay1 = (qpc_timestamp_vblank - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
+        let report_delay1 =
+            (qpc_timestamp_vblank - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
         let report_delay2 = (later - now) as f64 / qpc_frequency as f64 * 1_000_000.0;
         println!("Scanline: {}", scanline.ScanLine);
         println!(
@@ -966,30 +1014,46 @@ mod d3d12_hello_triangle {
         // check if we missed any flips
         if diff > 1 {
             println!("Missed {} flips", diff - 1);
-        }
-        else if diff == 1 {
-            println!("No missed flips");	
+        } else if diff == 1 {
+            println!("No missed flips");
         } else {
             println!("Skipped {} flips", diff);
         }
 
         // add the flip count to the frame_times vector
-        let vblank_to_vblank = (qpc_timestamp_vblank - *LAST_VLBANK_TIMESTAMP.lock().unwrap()) as f64 / qpc_frequency as f64 * 1000.0;
-        resources.frame_times_wait_for_vblank.push( vblank_to_vblank );
+        let vblank_to_vblank_interupt =
+            (qpc_timestamp_vblank - *LAST_INTERUPT_TIMESTAMP.lock().unwrap()) as f64
+                / qpc_frequency as f64
+                * 1000.0;
+
+        let vblank_to_vblank_vblank =
+            (after_vblank - *LAST_VLBANK_TIMESTAMP.lock().unwrap()) as f64 / qpc_frequency as f64
+                * 1000.0;
+
+        resources
+            .frame_times_interupt
+            .push(vblank_to_vblank_interupt);
+
+        resources
+            .frame_times_wait_for_vblank
+            .push(vblank_to_vblank_vblank);
+
+        if resources.frame_times_interupt.len() > 100 {
+            resources.frame_times_interupt.remove(0);
+        }
 
         if resources.frame_times_wait_for_vblank.len() > 100 {
             resources.frame_times_wait_for_vblank.remove(0);
         }
 
         // calculate the variance of the frame times
-
-        println!("Frame-to-frame time... mean: {} ms, std dev: {} ms", mean(&resources.frame_times_wait_for_vblank), std_dev(&resources.frame_times_wait_for_vblank));
-
-        
-        *LAST_FLIP.lock().unwrap() = count_after;
-        *LAST_VLBANK_TIMESTAMP.lock().unwrap() = qpc_timestamp_vblank;
+        report_stats(&resources.frame_times_interupt, "FrameStatistics");
+        report_stats(&resources.frame_times_wait_for_vblank, "WaitForVBlank");
 
         resources.frame_index = unsafe { resources.swap_chain.GetCurrentBackBufferIndex() };
+
+        *LAST_INTERUPT_TIMESTAMP.lock().unwrap() = qpc_timestamp_vblank;
+        *LAST_VLBANK_TIMESTAMP.lock().unwrap() = after_vblank;
     }
 }
 
