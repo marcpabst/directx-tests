@@ -1116,9 +1116,8 @@ fn main() -> Result<()> {
                 }
                 // print stats
                 report_stats(&vblank_time_vec, "VBlank");
-
-                was_in_vblank = scanline.InVerticalBlank.as_bool();
             }
+            was_in_vblank = scanline.InVerticalBlank.as_bool();
         }
     })
     .join()
