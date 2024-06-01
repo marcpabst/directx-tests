@@ -1105,64 +1105,64 @@ fn main() -> Result<()> {
     // create a channel to communicate with the scanline polling thread
     // let (tx, rx) = std::sync::mpsc::channel();
 
-    // create a thread to poll the scanline
-    std::thread::spawn(move || {
-        assert!(set_current_thread_priority(ThreadPriority::Max).is_ok());
+    // // create a thread to poll the scanline
+    // std::thread::spawn(move || {
+    //     assert!(set_current_thread_priority(ThreadPriority::Max).is_ok());
 
-        let hndl = get_vblank_handle().unwrap();
+    //     let hndl = get_vblank_handle().unwrap();
 
-        let mut scanline: D3DKMT_GETSCANLINE = Default::default();
+    //     let mut scanline: D3DKMT_GETSCANLINE = Default::default();
 
-        let mut calc = refresh_rates::RefreshRateCalculator::new();
+    //     let mut calc = refresh_rates::RefreshRateCalculator::new();
 
-        scanline.hAdapter = hndl.hAdapter;
-        scanline.VidPnSourceId = hndl.VidPnSourceId;
+    //     scanline.hAdapter = hndl.hAdapter;
+    //     scanline.VidPnSourceId = hndl.VidPnSourceId;
 
-        let mut was_in_vblank = false;
+    //     let mut was_in_vblank = false;
 
-        let start = std::time::Instant::now();
+    //     let start = std::time::Instant::now();
 
-        let mut vblank_time_vec = vec![start.elapsed().as_secs_f64()];
+    //     let mut vblank_time_vec = vec![start.elapsed().as_secs_f64()];
 
-        let mut i = 0;
+    //     let mut i = 0;
 
-        loop {
-            unsafe { D3DKMTGetScanLine(&mut scanline) };
-            i += 1;
+    //     loop {
+    //         unsafe { D3DKMTGetScanLine(&mut scanline) };
+    //         i += 1;
 
-            let is_in_vblank = scanline.InVerticalBlank.as_bool();
+    //         let is_in_vblank = scanline.InVerticalBlank.as_bool();
 
-            if !is_in_vblank && was_in_vblank {
-                // We just left the vblank
+    //         if !is_in_vblank && was_in_vblank {
+    //             // We just left the vblank
 
-                let t = start.elapsed().as_secs_f64() * 1000.0;
-                vblank_time_vec.push(t);
+    //             let t = start.elapsed().as_secs_f64() * 1000.0;
+    //             vblank_time_vec.push(t);
 
-                if vblank_time_vec.len() > 50 {
-                    vblank_time_vec.remove(0);
-                }
+    //             if vblank_time_vec.len() > 50 {
+    //                 vblank_time_vec.remove(0);
+    //             }
 
-                // print stats
-                let diffs: Vec<f64> = vblank_time_vec.windows(2).map(|w| w[1] - w[0]).collect();
-                let last_diff = diffs.last().unwrap();
-                //log::info!("Frame time: {} ms", last_diff);
-                log::info!("Frame time: {} ms", last_diff);
-                report_stats(&diffs, "VBlank");
+    //             // print stats
+    //             let diffs: Vec<f64> = vblank_time_vec.windows(2).map(|w| w[1] - w[0]).collect();
+    //             let last_diff = diffs.last().unwrap();
+    //             //log::info!("Frame time: {} ms", last_diff);
+    //             log::info!("Frame time: {} ms", last_diff);
+    //             report_stats(&diffs, "VBlank");
 
-                // // fps estimation
-                // calc.count_cycle(t);
-                // let fps = calc.get_current_frequency();
-                // log::info!("Current estimated FPS: {}", fps);
+    //             // // fps estimation
+    //             // calc.count_cycle(t);
+    //             // let fps = calc.get_current_frequency();
+    //             // log::info!("Current estimated FPS: {}", fps);
 
-                // we can sleep here to avoid busy waiting
-                //std::thread::sleep(std::time::Duration::from_millis(1));
+    //             // we can sleep here to avoid busy waiting
+    //             //std::thread::sleep(std::time::Duration::from_millis(1));
 
-                i = 0;
-            }
+    //             i = 0;
+    //         }
 
-            was_in_vblank = is_in_vblank;
-        }
-    });
+    //         was_in_vblank = is_in_vblank;
+    //     }
+    // });
     run_sample::<d3d12_hello_triangle::Sample>()?;
     Ok(())
 }
