@@ -1097,9 +1097,10 @@ enum VBlankEvent {
 
 fn main() -> Result<()> {
     // set log level to info
-    env_logger::builder()
-        .filter_level(log::LevelFilter::Info)
-        .init();
+    simple_logger::SimpleLogger::new()
+        .with_level(log::LevelFilter::Info)
+        .init()
+        .unwrap();
 
     // create a channel to communicate with the scanline polling thread
     // let (tx, rx) = std::sync::mpsc::channel();
