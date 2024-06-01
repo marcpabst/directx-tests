@@ -997,7 +997,7 @@ mod d3d12_hello_triangle {
 
         //unsafe { output.WaitForVBlank().unwrap() };
 
-        unsafe { D3DKMTWaitForVerticalBlankEvent(&mut resources.wait_for_vblank_event) };
+        //unsafe { D3DKMTWaitForVerticalBlankEvent(&mut resources.wait_for_vblank_event) };
 
         // take timestamp
         let mut vblank_timestamp_wait = i64::default();
