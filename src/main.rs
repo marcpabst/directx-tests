@@ -1005,10 +1005,10 @@ mod d3d12_hello_triangle {
 
         let (mut count_after, mut vblanc_timestamp_interupt) = get_current_flip_count(swap_chain);
 
-        // // busy wait until the flip count changes
-        // while count_after == count_before {
-        //     (count_after, vblanc_timestamp_interupt) = get_current_flip_count(swap_chain);
-        // }
+        // busy wait until the flip count changes
+        while count_after == count_before {
+            (count_after, vblanc_timestamp_interupt) = get_current_flip_count(swap_chain);
+        }
 
         let mut later = i64::default();
         unsafe { QueryPerformanceCounter(&mut later) };
