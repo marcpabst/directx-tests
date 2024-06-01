@@ -941,27 +941,27 @@ mod d3d12_hello_triangle {
         // D3D12HelloFrameBuffering sample illustrates how to use fences for
         // efficient resource usage and to maximize GPU utilization.
 
-        // // Signal and increment the fence value.
-        // let fence = resources.fence_value;
+        // Signal and increment the fence value.
+        let fence = resources.fence_value;
 
-        // unsafe { resources.command_queue.Signal(&resources.fence, fence) }
-        //     .ok()
-        //     .unwrap();
+        unsafe { resources.command_queue.Signal(&resources.fence, fence) }
+            .ok()
+            .unwrap();
 
-        // resources.fence_value += 1;
+        resources.fence_value += 1;
 
-        // // Wait until the previous frame is finished.
-        // if unsafe { resources.fence.GetCompletedValue() } < fence {
-        //     unsafe {
-        //         resources
-        //             .fence
-        //             .SetEventOnCompletion(fence, resources.fence_event)
-        //     }
-        //     .ok()
-        //     .unwrap();
+        // Wait until the previous frame is finished.
+        if unsafe { resources.fence.GetCompletedValue() } < fence {
+            unsafe {
+                resources
+                    .fence
+                    .SetEventOnCompletion(fence, resources.fence_event)
+            }
+            .ok()
+            .unwrap();
 
-        //     unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
-        // }
+            unsafe { WaitForSingleObject(resources.fence_event, INFINITE) };
+        }
 
         // get current scanline
         let mut scanline: D3DKMT_GETSCANLINE = Default::default();
@@ -978,17 +978,17 @@ mod d3d12_hello_triangle {
         let mut qpc_frequency = i64::default();
         unsafe { QueryPerformanceFrequency(&mut qpc_frequency) };
 
-        while scanline.InVerticalBlank.as_bool() == false {
-            unsafe { D3DKMTGetScanLine(&mut scanline) };
-        }
+        // while scanline.InVerticalBlank.as_bool() == false {
+        //     unsafe { D3DKMTGetScanLine(&mut scanline) };
+        // }
 
-        while scanline.InVerticalBlank.as_bool() == true {
-            unsafe { D3DKMTGetScanLine(&mut scanline) };
-        }
+        // while scanline.InVerticalBlank.as_bool() == true {
+        //     unsafe { D3DKMTGetScanLine(&mut scanline) };
+        // }
 
         //unsafe { output.WaitForVBlank().unwrap() };
 
-        // unsafe { D3DKMTWaitForVerticalBlankEvent(&mut resources.wait_for_vblank_event) };
+        unsafe { D3DKMTWaitForVerticalBlankEvent(&mut resources.wait_for_vblank_event) };
 
         // take timestamp
         let mut vblank_timestamp_wait = i64::default();
