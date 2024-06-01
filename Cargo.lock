@@ -48,6 +48,7 @@ dependencies = [
  "array-init",
  "csv",
  "lazy_static",
+ "log",
  "rand",
  "thread-priority",
  "windows",

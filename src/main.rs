@@ -40,7 +40,7 @@ macro_rules! time {
         let start = std::time::Instant::now();
         let result = { $block };
         let duration = start.elapsed();
-        println!("Time elapsed: {:?}", duration);
+        log::info!("Time elapsed: {:?}", duration);
         result
     }};
 }
@@ -81,9 +81,15 @@ fn report_stats(data: &Vec<f64>, name: &str) {
     let max = maximum(data);
     let n = data.len();
 
-    println!(
+    log::info!(
         "{}: mean: {:.5} std_dev: {:.5} variance: {:.5}, range: {:.5}..{:.5} (n={})",
-        name, mean, std_dev, variance, min, max, n
+        name,
+        mean,
+        std_dev,
+        variance,
+        min,
+        max,
+        n
     );
 }
 
@@ -232,11 +238,11 @@ where
 
     sample.bind_to_window(&hwnd)?;
 
-    println!("hello from run_sample 3");
+    log::info!("hello from run_sample 3");
 
     unsafe { _ = ShowWindow(hwnd, SW_SHOW) };
 
-    println!("hello from run_sample 4");
+    log::info!("hello from run_sample 4");
 
     loop {
         let mut message = MSG::default();
@@ -535,7 +541,7 @@ mod d3d12_hello_triangle {
 
             let fence_event = unsafe { CreateEventA(None, false, false, None)? };
 
-            println!("hello from bind_to_window");
+            log::info!("hello from bind_to_window");
 
             self.resources = Some(Resources {
                 command_queue,
@@ -562,7 +568,7 @@ mod d3d12_hello_triangle {
                 frame_times_wait_for_vblank: vec![],
             });
 
-            println!("hello from bind_to_window 2");
+            log::info!("hello from bind_to_window 2");
 
             Ok(())
         }
@@ -1013,13 +1019,13 @@ mod d3d12_hello_triangle {
             * 1_000_000.0;
         let report_delay2 =
             (later - vblank_timestamp_wait) as f64 / qpc_frequency as f64 * 1_000_000.0;
-        // println!("Scanline: {}", scanline.ScanLine);
-        // println!(
+        // log::info!("Scanline: {}", scanline.ScanLine);
+        // log::info!(
         //     "Report delay between WaitForVBlank and flip timestamped through frame statistics: {} us",
         //     report_delay1
         // );
 
-        // println!(
+        // log::info!(
         //     "Report delay between WaitForVBlank and flip polled through frame statistics: {} us",
         //     report_delay2
         // );
@@ -1030,19 +1036,19 @@ mod d3d12_hello_triangle {
 
         // get current estimated fps
         //let fps = resources.frame_rate_calc.get_current_frequency();
-        //println!("Current estimated FPS: {}", fps);
+        //log::info!("Current estimated FPS: {}", fps);
 
         let diff = count_after - count_before;
 
-        println!("Flip count before {} after {}", count_before, count_after);
+        log::info!("Flip count before {} after {}", count_before, count_after);
 
         // check if we missed any flips
         if diff > 1 {
-            println!("Missed {} flips", diff - 1);
+            log::info!("Missed {} flips", diff - 1);
         } else if diff == 1 {
-            //println!("No missed flips");
+            //log::info!("No missed flips");
         } else {
-            println!("Skipped {} flips", diff);
+            log::info!("Skipped {} flips", diff);
         }
 
         // add the flip count to the frame_times vector
@@ -1133,13 +1139,14 @@ fn main() -> Result<()> {
                 // print stats
                 let diffs: Vec<f64> = vblank_time_vec.windows(2).map(|w| w[1] - w[0]).collect();
                 let last_diff = diffs.last().unwrap();
-                //println!("Frame time: {} ms", last_diff);
+                //log::info!("Frame time: {} ms", last_diff);
+                log::info!("Frame time: {} ms", last_diff);
                 //report_stats(&diffs, "VBlank");
 
                 // // fps estimation
                 // calc.count_cycle(t);
                 // let fps = calc.get_current_frequency();
-                // println!("Current estimated FPS: {}", fps);
+                // log::info!("Current estimated FPS: {}", fps);
 
                 // we can sleep here to avoid busy waiting
                 //std::thread::sleep(std::time::Duration::from_millis(1));
