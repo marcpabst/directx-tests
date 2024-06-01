@@ -1133,8 +1133,8 @@ fn main() -> Result<()> {
                 // print stats
                 let diffs: Vec<f64> = vblank_time_vec.windows(2).map(|w| w[1] - w[0]).collect();
                 let last_diff = diffs.last().unwrap();
-                println!("Frame time: {} ms", last_diff);
-                report_stats(&diffs, "VBlank");
+                //println!("Frame time: {} ms", last_diff);
+                //report_stats(&diffs, "VBlank");
 
                 // // fps estimation
                 // calc.count_cycle(t);
@@ -1144,7 +1144,6 @@ fn main() -> Result<()> {
                 // we can sleep here to avoid busy waiting
                 //std::thread::sleep(std::time::Duration::from_millis(1));
 
-                println!("VBlank end");
                 i = 0;
             }
 
