@@ -1029,10 +1029,12 @@ mod d3d12_hello_triangle {
         resources.frame_rate_calc.count_cycle(last_vblank_ms);
 
         // get current estimated fps
-        let fps = resources.frame_rate_calc.get_current_frequency();
+        //let fps = resources.frame_rate_calc.get_current_frequency();
         //println!("Current estimated FPS: {}", fps);
 
         let diff = count_after - count_before;
+
+        println!("Flip count before {} after {}", count_before, count_after);
 
         // check if we missed any flips
         if diff > 1 {
