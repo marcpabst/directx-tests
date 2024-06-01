@@ -988,9 +988,9 @@ mod d3d12_hello_triangle {
         let mut qpc_frequency = i64::default();
         unsafe { QueryPerformanceFrequency(&mut qpc_frequency) };
 
-        // while scanline.InVerticalBlank.as_bool() == false {
-        //     unsafe { D3DKMTGetScanLine(&mut scanline) };
-        // }
+        while scanline.InVerticalBlank.as_bool() == false {
+            unsafe { D3DKMTGetScanLine(&mut scanline) };
+        }
 
         // while scanline.InVerticalBlank.as_bool() == true {
         //     unsafe { D3DKMTGetScanLine(&mut scanline) };
