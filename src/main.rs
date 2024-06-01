@@ -593,7 +593,7 @@ mod d3d12_hello_triangle {
                 std::thread::sleep(std::time::Duration::from_millis(2));
 
                 // Present the frame.x
-                unsafe { resources.swap_chain.Present(1, 0) }.ok().unwrap();
+                unsafe { resources.swap_chain.Present(0, 0) }.ok().unwrap();
 
                 wait_for_previous_frame(resources);
             }
