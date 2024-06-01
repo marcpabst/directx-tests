@@ -1096,6 +1096,11 @@ enum VBlankEvent {
 }
 
 fn main() -> Result<()> {
+    // set log level to info
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Info)
+        .init();
+
     // create a channel to communicate with the scanline polling thread
     // let (tx, rx) = std::sync::mpsc::channel();
 
@@ -1141,7 +1146,7 @@ fn main() -> Result<()> {
                 let last_diff = diffs.last().unwrap();
                 //log::info!("Frame time: {} ms", last_diff);
                 log::info!("Frame time: {} ms", last_diff);
-                //report_stats(&diffs, "VBlank");
+                report_stats(&diffs, "VBlank");
 
                 // // fps estimation
                 // calc.count_cycle(t);
