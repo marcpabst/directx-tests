@@ -992,9 +992,9 @@ mod d3d12_hello_triangle {
             unsafe { D3DKMTGetScanLine(&mut scanline) };
         }
 
-        // while scanline.InVerticalBlank.as_bool() == true {
-        //     unsafe { D3DKMTGetScanLine(&mut scanline) };
-        // }
+        while scanline.InVerticalBlank.as_bool() == true {
+            unsafe { D3DKMTGetScanLine(&mut scanline) };
+        }
 
         //unsafe { output.WaitForVBlank().unwrap() };
 
@@ -1041,7 +1041,7 @@ mod d3d12_hello_triangle {
 
         let diff = count_after - count_before;
 
-        log::info!("Flip count before {} after {}", count_before, count_after);
+        //log::info!("Flip count before {} after {}", count_before, count_after);
 
         // check if we missed any flips
         if diff > 1 {
