@@ -590,7 +590,7 @@ mod d3d12_hello_triangle {
                 unsafe { resources.command_queue.ExecuteCommandLists(&[command_list]) };
 
                 // simulate some work
-                //std::thread::sleep(std::time::Duration::from_millis(2));
+                std::thread::sleep(std::time::Duration::from_millis(1));
 
                 // Present the frame.x
                 unsafe { resources.swap_chain.Present(1, 0) }.ok().unwrap();
