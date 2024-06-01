@@ -589,8 +589,9 @@ mod d3d12_hello_triangle {
                 let command_list = Some(resources.command_list.cast().unwrap());
                 unsafe { resources.command_queue.ExecuteCommandLists(&[command_list]) };
 
-                // simulate some work
-                std::thread::sleep(std::time::Duration::from_millis(1));
+                // simulate some work (busy wait for 1ms)
+                let start = std::time::Instant::now();
+                while start.elapsed().as_millis() < 1 {}
 
                 // Present the frame.x
                 unsafe { resources.swap_chain.Present(1, 0) }.ok().unwrap();
