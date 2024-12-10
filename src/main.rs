@@ -1097,6 +1097,7 @@ enum VBlankEvent {
 }
 
 fn main() -> Result<()> {
+    assert!(set_current_thread_priority(ThreadPriority::Max).is_ok());
     // set log level to info
     simple_logger::SimpleLogger::new()
         .with_level(log::LevelFilter::Info)
