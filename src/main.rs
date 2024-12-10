@@ -945,6 +945,22 @@ mod d3d12_hello_triangle {
         (present_stats.SyncRefreshCount, present_stats.SyncQPCTime)
     }
 
+    fn wait_for_vblank_scaline(scanline: &mut D3DKMT_GETSCANLINE) {
+        unsafe { D3DKMTGetScanLine(scanline) };
+
+        while scanline.InVerticalBlank.as_bool() == false {
+            unsafe { D3DKMTGetScanLine(scanline) };
+        }
+
+        // we are now in the vertical blank
+
+        while scanline.InVerticalBlank.as_bool() == true {
+            unsafe { D3DKMTGetScanLine(scanline) };
+        }
+
+        // we are now out of the vertical blank
+    }
+
     fn wait_for_previous_frame(resources: &mut Resources) {
         // WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST
         // PRACTICE. This is code implemented as such for simplicity. The
@@ -978,10 +994,10 @@ mod d3d12_hello_triangle {
         scanline.hAdapter = resources.wait_for_vblank_event.hAdapter;
         scanline.VidPnSourceId = resources.wait_for_vblank_event.VidPnSourceId;
 
-        unsafe { D3DKMTGetScanLine(&mut scanline) };
+        wait_for_vblank_scaline(&mut scanline);
 
         let swap_chain = &resources.swap_chain;
-        let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
+        // let output: IDXGIOutput = unsafe { swap_chain.GetContainingOutput() }.unwrap();
 
         let count_before = *LAST_FLIP.lock().unwrap();
 
